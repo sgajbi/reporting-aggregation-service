@@ -2,6 +2,8 @@ from typing import Any
 
 import httpx
 
+from app.observability import propagation_headers
+
 
 class PaClient:
     def __init__(self, base_url: str, timeout_seconds: float):
@@ -21,8 +23,9 @@ class PaClient:
             "periods": periods,
             "consumerSystem": "REPORTING",
         }
+        headers = propagation_headers()
         async with httpx.AsyncClient(timeout=self._timeout_seconds) as client:
-            response = await client.post(url, json=payload)
+            response = await client.post(url, json=payload, headers=headers)
             return response.status_code, self._parse_payload(response)
 
     def _parse_payload(self, response: httpx.Response) -> dict[str, Any]:

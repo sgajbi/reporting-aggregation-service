@@ -13,6 +13,15 @@ def health() -> dict[str, str]:
 
 
 @router.get(
+    "/health/live",
+    summary="Service liveness",
+    description="Liveness endpoint for orchestration and runtime checks.",
+)
+def live() -> dict[str, str]:
+    return {"status": "live"}
+
+
+@router.get(
     "/health/ready",
     summary="Service readiness",
     description="Readiness endpoint for orchestration and integration checks.",

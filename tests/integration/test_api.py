@@ -10,6 +10,24 @@ def test_health():
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+    assert response.headers.get("X-Correlation-Id")
+    assert response.headers.get("X-Request-Id")
+    assert response.headers.get("X-Trace-Id")
+
+
+def test_health_live_and_ready():
+    live = client.get("/health/live")
+    ready = client.get("/health/ready")
+    assert live.status_code == 200
+    assert ready.status_code == 200
+    assert live.json() == {"status": "live"}
+    assert ready.json() == {"status": "ready"}
+
+
+def test_metrics_endpoint_available():
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    assert "http_requests_total" in response.text or "http_request_duration" in response.text
 
 
 def test_integration_capabilities():

@@ -4,6 +4,7 @@ from app.routers.aggregations import router as aggregations_router
 from app.routers.health import router as health_router
 from app.routers.integration import router as integration_router
 from app.routers.reports import router as reports_router
+from app.observability import setup_observability
 
 app = FastAPI(
     title="Reporting and Aggregation Service",
@@ -18,6 +19,7 @@ app = FastAPI(
         {"name": "Reports", "description": "Report-generation APIs and report metadata."},
     ],
 )
+setup_observability(app)
 
 app.include_router(health_router)
 app.include_router(integration_router)

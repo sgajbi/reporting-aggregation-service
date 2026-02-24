@@ -3,6 +3,7 @@
 Service scope:
 - build aggregated read models for reporting from PAS and PA data contracts
 - generate reporting artifacts metadata and download references
+- own reporting endpoints for portfolio summary and portfolio review payloads
 
 ## Local Run
 
@@ -14,6 +15,14 @@ uvicorn app.main:app --reload --port 8300
 
 API docs:
 - http://localhost:8300/docs
+
+Key reporting endpoints:
+- `POST /reports/portfolios/{portfolio_id}/summary`
+- `POST /reports/portfolios/{portfolio_id}/review`
+
+Current orchestration model:
+- RAS composes summary/review responses from PAS core snapshot contracts.
+- RAS enriches review performance section from PA analytics contracts.
 
 ## Tests
 

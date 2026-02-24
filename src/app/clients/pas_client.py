@@ -2,6 +2,8 @@ from typing import Any
 
 import httpx
 
+from app.observability import propagation_headers
+
 
 class PasClient:
     def __init__(self, base_url: str, timeout_seconds: float):
@@ -20,8 +22,9 @@ class PasClient:
             "includeSections": include_sections,
             "consumerSystem": "REPORTING",
         }
+        headers = propagation_headers()
         async with httpx.AsyncClient(timeout=self._timeout_seconds) as client:
-            response = await client.post(url, json=payload)
+            response = await client.post(url, json=payload, headers=headers)
             return response.status_code, self._parse_payload(response)
 
     async def get_portfolio_summary(
@@ -51,7 +54,7 @@ class PasClient:
     def _headers(self, correlation_id: str | None) -> dict[str, str]:
         if not correlation_id:
             return {}
-        return {"X-Correlation-ID": correlation_id}
+        return propagation_headers(correlation_id)
 
     def _parse_payload(self, response: httpx.Response) -> dict[str, Any]:
         try:

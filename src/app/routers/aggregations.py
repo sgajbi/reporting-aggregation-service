@@ -19,7 +19,9 @@ router = APIRouter(prefix="/aggregations", tags=["Aggregations"])
 )
 async def get_portfolio_aggregation(
     portfolio_id: Annotated[str, Path(description="Canonical portfolio identifier.")],
-    as_of_date: Annotated[str, Query(alias="asOfDate", description="Business as-of date (YYYY-MM-DD).")],
+    as_of_date: Annotated[
+        str, Query(alias="asOfDate", description="Business as-of date (YYYY-MM-DD).")
+    ],
     live: Annotated[
         bool,
         Query(
@@ -30,5 +32,7 @@ async def get_portfolio_aggregation(
 ) -> PortfolioAggregationResponse:
     service = AggregationService()
     if live:
-        return await service.get_portfolio_aggregation_live(portfolio_id=portfolio_id, as_of_date=as_of_date)
+        return await service.get_portfolio_aggregation_live(
+            portfolio_id=portfolio_id, as_of_date=as_of_date
+        )
     return service.get_portfolio_aggregation(portfolio_id=portfolio_id, as_of_date=as_of_date)

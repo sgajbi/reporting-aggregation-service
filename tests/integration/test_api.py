@@ -13,7 +13,7 @@ def test_health():
 
 
 def test_aggregation_endpoint():
-    response = client.get("/aggregations/portfolios/DEMO_DPM_EUR_001?asOfDate=2026-02-24")
+    response = client.get("/aggregations/portfolios/DEMO_DPM_EUR_001?asOfDate=2026-02-24&live=false")
     assert response.status_code == 200
     body = response.json()
     assert body["scope"]["portfolioId"] == "DEMO_DPM_EUR_001"

@@ -17,11 +17,18 @@ router = APIRouter(prefix="/aggregations", tags=["Aggregations"])
         "Current slice uses deterministic placeholder rows while PAS/PA connectors are integrated."
     ),
 )
-def get_portfolio_aggregation(
+async def get_portfolio_aggregation(
     portfolio_id: Annotated[str, Path(description="Canonical portfolio identifier.")],
     as_of_date: Annotated[str, Query(alias="asOfDate", description="Business as-of date (YYYY-MM-DD).")],
+    live: Annotated[
+        bool,
+        Query(
+            description="If true, fetches PAS and PA upstream contracts before aggregation.",
+            examples=[True],
+        ),
+    ] = True,
 ) -> PortfolioAggregationResponse:
-    return AggregationService().get_portfolio_aggregation(
-        portfolio_id=portfolio_id,
-        as_of_date=as_of_date,
-    )
+    service = AggregationService()
+    if live:
+        return await service.get_portfolio_aggregation_live(portfolio_id=portfolio_id, as_of_date=as_of_date)
+    return service.get_portfolio_aggregation(portfolio_id=portfolio_id, as_of_date=as_of_date)

@@ -1,4 +1,4 @@
-.PHONY: install lint typecheck test test-unit test-integration test-e2e test-coverage security-audit check ci ci-local docker-build clean
+.PHONY: install lint typecheck openapi-gate test test-unit test-integration test-e2e test-coverage security-audit check ci ci-local docker-build clean
 
 install:
 	python -m pip install --upgrade pip
@@ -12,6 +12,9 @@ lint:
 
 typecheck:
 	mypy --config-file mypy.ini
+
+openapi-gate:
+	python scripts/openapi_quality_gate.py
 
 test:
 	$(MAKE) test-unit
@@ -35,9 +38,9 @@ test-coverage:
 security-audit:
 	python -m pip_audit
 
-check: lint typecheck test
+check: lint typecheck openapi-gate test
 
-ci: lint typecheck test-integration test-e2e test-coverage security-audit
+ci: lint typecheck openapi-gate test-integration test-e2e test-coverage security-audit
 
 ci-local: ci
 

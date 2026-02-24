@@ -44,6 +44,8 @@ jobs:
         run: make lint
       - name: Typecheck
         run: make typecheck
+      - name: OpenAPI Gate
+        run: make openapi-gate
       - name: Security Audit
         run: make security-audit
 

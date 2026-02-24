@@ -30,4 +30,3 @@ async def test_aggregation_router_live_branch(monkeypatch):
 def test_reporting_router_dependency_factory():
     service = get_reporting_read_service()
     assert isinstance(service, ReportingReadService)
-

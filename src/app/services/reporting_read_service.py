@@ -54,8 +54,8 @@ class ReportingReadService:
         }
         if "WEALTH" in requested_sections:
             response["wealth"] = {
-                "total_market_value": float(overview.get("total_market_value", 0.0)),
-                "total_cash": float(overview.get("total_cash", 0.0)),
+                "total_market_value": self._to_float(overview.get("total_market_value")),
+                "total_cash": self._to_float(overview.get("total_cash")),
             }
         if "PNL" in requested_sections and "pnl_summary" in overview:
             response["pnlSummary"] = overview.get("pnl_summary")
@@ -186,3 +186,14 @@ class ReportingReadService:
         if isinstance(value, dict):
             return value
         return {}
+
+    @staticmethod
+    def _to_float(value: object) -> float:
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            try:
+                return float(value)
+            except ValueError:
+                return 0.0
+        return 0.0

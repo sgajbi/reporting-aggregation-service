@@ -3,7 +3,6 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.routers.reports import get_reporting_read_service
 
-
 client = TestClient(app)
 
 

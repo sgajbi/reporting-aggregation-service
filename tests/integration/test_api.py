@@ -1,5 +1,5 @@
-from fastapi.testclient import TestClient
 from fastapi import HTTPException
+from fastapi.testclient import TestClient
 
 from app.main import app
 from app.routers.reports import get_reporting_read_service
@@ -140,7 +140,9 @@ def test_ras_portfolio_summary_endpoint():
 
 
 def test_ras_portfolio_summary_propagates_validation_error():
-    app.dependency_overrides[get_reporting_read_service] = lambda: _StubReportingReadServiceFailure()
+    app.dependency_overrides[get_reporting_read_service] = lambda: (
+        _StubReportingReadServiceFailure()
+    )
     response = client.post(
         "/reports/portfolios/DEMO_DPM_EUR_001/summary",
         json={},
@@ -169,7 +171,9 @@ def test_ras_portfolio_review_endpoint():
 
 
 def test_ras_portfolio_review_propagates_upstream_error():
-    app.dependency_overrides[get_reporting_read_service] = lambda: _StubReportingReadServiceFailure()
+    app.dependency_overrides[get_reporting_read_service] = lambda: (
+        _StubReportingReadServiceFailure()
+    )
     response = client.post(
         "/reports/portfolios/DEMO_DPM_EUR_001/review",
         json={"as_of_date": "2026-02-24"},

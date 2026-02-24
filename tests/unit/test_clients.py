@@ -163,4 +163,3 @@ async def test_pas_client_get_portfolio_review_posts_expected_contract(monkeypat
     assert payload["portfolio_id"] == "P4"
     assert recorder.calls[0]["url"] == "http://pas/portfolios/P4/review"
     assert recorder.calls[0]["headers"] == {}
-

@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "reporting-aggregation-service"
 version = "0.1.0"
@@ -17,10 +21,16 @@ dev = [
   "pytest>=8.4.1",
   "httpx>=0.28.1",
   "ruff>=0.12.10",
+  "mypy>=1.19.1",
+  "pytest-cov>=6.2.1",
+  "coverage>=7.10.6",
+  "pre-commit>=4.3.0",
+  "pip-audit>=2.9.0",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
 
 [tool.ruff]
 line-length = 100
@@ -28,3 +38,7 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+[tool.coverage.run]
+branch = true
+source = ["src/app"]

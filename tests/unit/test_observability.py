@@ -85,4 +85,3 @@ def test_json_formatter_emits_structured_payload_with_extra_fields(monkeypatch):
     assert payload["message"] == "log-message"
     assert payload["endpoint"] == "/health"
     assert payload["latency_ms"] == 12.5
-

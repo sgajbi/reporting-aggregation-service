@@ -1,7 +1,7 @@
 import pytest
 
 from app.routers.aggregations import get_portfolio_aggregation
-from app.routers.reports import get_reporting_read_service
+from app.routers.reports import _apply_section_limit, get_reporting_read_service
 from app.services.reporting_read_service import ReportingReadService
 
 
@@ -30,3 +30,15 @@ async def test_aggregation_router_live_branch(monkeypatch):
 def test_reporting_router_dependency_factory():
     service = get_reporting_read_service()
     assert isinstance(service, ReportingReadService)
+
+
+def test_apply_section_limit_trims_oversized_sections():
+    payload = {"sections": ["A", "B", "C"], "as_of_date": "2026-02-25"}
+    limited = _apply_section_limit(payload, section_limit=2)
+    assert limited["sections"] == ["A", "B"]
+
+
+def test_apply_section_limit_keeps_non_list_sections():
+    payload = {"sections": "ALL"}
+    limited = _apply_section_limit(payload, section_limit=2)
+    assert limited["sections"] == "ALL"

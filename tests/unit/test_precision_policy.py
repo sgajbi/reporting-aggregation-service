@@ -3,6 +3,8 @@ from decimal import Decimal
 import pytest
 
 from app.precision_policy import (
+    ROUNDING_POLICY_VERSION,
+    normalize_input,
     quantize_fx_rate,
     quantize_money,
     quantize_performance,
@@ -35,3 +37,18 @@ def test_precision_scales() -> None:
     assert quantize_quantity("100.1234567") == Decimal("100.123457")
     assert quantize_performance("0.123456789") == Decimal("0.123457")
     assert quantize_risk("0.22222229") == Decimal("0.222222")
+
+
+def test_rounding_policy_version_exposed() -> None:
+    assert ROUNDING_POLICY_VERSION == "1.1.0"
+
+
+def test_normalize_input_rejects_over_scale() -> None:
+    with pytest.raises(ValueError, match="money scale 9 exceeds max 8"):
+        normalize_input("12.123456789", "money")
+
+
+def test_intermediate_precision_preserved_before_final_quantize() -> None:
+    value = normalize_input("0.123456789012", "performance")
+    assert value == Decimal("0.123456789012")
+    assert quantize_performance(value) == Decimal("0.123457")

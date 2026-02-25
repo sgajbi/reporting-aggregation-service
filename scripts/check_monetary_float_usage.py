@@ -1,6 +1,7 @@
 import argparse
 import json
 import re
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 KEYWORDS = (
@@ -47,17 +48,77 @@ def scan_repo(repo_root: Path) -> list[str]:
     return sorted(set(findings))
 
 
-def load_allowlist(path: Path) -> set[str]:
+def _parse_review_date(value: str) -> datetime:
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=UTC)
+    except ValueError as exc:
+        raise ValueError(f"Invalid review_by date format: {value!r}, expected YYYY-MM-DD") from exc
+
+
+def load_allowlist(path: Path) -> tuple[dict[str, dict], list[str], list[str]]:
     if not path.exists():
-        return set()
+        return {}, [], []
     data = json.loads(path.read_text(encoding="utf-8"))
-    return set(data.get("allowlist", []))
+    raw_entries = data.get("allowlist", [])
+    entries: dict[str, dict] = {}
+    errors: list[str] = []
+    stale: list[str] = []
+    today = datetime.now(tz=UTC).date()
+    for item in raw_entries:
+        if isinstance(item, str):
+            errors.append(f"Legacy allowlist string entry must be migrated: {item}")
+            continue
+        if not isinstance(item, dict):
+            errors.append(f"Allowlist entry must be object, found: {type(item).__name__}")
+            continue
+        finding = item.get("finding")
+        justification = item.get("justification")
+        owner = item.get("owner")
+        review_by = item.get("review_by")
+        if not all([finding, justification, owner, review_by]):
+            errors.append(
+                "Allowlist entry missing required fields (finding/justification/owner/review_by): "
+                + json.dumps(item, sort_keys=True)
+            )
+            continue
+        try:
+            review_dt = _parse_review_date(str(review_by))
+        except ValueError as exc:
+            errors.append(str(exc))
+            continue
+        if review_dt.date() < today:
+            stale.append(str(finding))
+        entries[str(finding)] = {
+            "finding": str(finding),
+            "justification": str(justification),
+            "owner": str(owner),
+            "review_by": review_dt.strftime("%Y-%m-%d"),
+        }
+    return entries, errors, stale
 
 
-def write_allowlist(path: Path, findings: list[str]) -> None:
+def write_allowlist(
+    path: Path, findings: list[str], existing_entries: dict[str, dict], review_by: str
+) -> None:
+    generated_at = datetime.now(tz=UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    allowlist_entries: list[dict] = []
+    for finding in sorted(set(findings)):
+        if finding in existing_entries:
+            allowlist_entries.append(existing_entries[finding])
+            continue
+        allowlist_entries.append(
+            {
+                "finding": finding,
+                "justification": "Temporary approved monetary float usage; migrate to Decimal.",
+                "owner": "platform-governance",
+                "review_by": review_by,
+            }
+        )
     payload = {
         "description": "Approved baseline monetary-float findings. New findings fail CI.",
-        "allowlist": findings,
+        "policy_version": "1.1.0",
+        "generated_at": generated_at,
+        "allowlist": allowlist_entries,
     }
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
@@ -71,19 +132,41 @@ def main() -> int:
         default="docs/standards/monetary-float-allowlist.json",
     )
     parser.add_argument("--update-allowlist", action="store_true")
+    parser.add_argument(
+        "--default-review-days",
+        type=int,
+        default=180,
+        help="Days until review_by for newly generated allowlist entries.",
+    )
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root).resolve()
     allowlist_path = (repo_root / args.allowlist).resolve()
     findings = scan_repo(repo_root)
+    allowlist_entries, allowlist_errors, stale_entries = load_allowlist(allowlist_path)
 
     if args.update_allowlist:
-        write_allowlist(allowlist_path, findings)
+        default_review_by = (datetime.now(tz=UTC) + timedelta(days=args.default_review_days)).strftime(
+            "%Y-%m-%d"
+        )
+        write_allowlist(allowlist_path, findings, allowlist_entries, default_review_by)
         print(f"Updated allowlist with {len(findings)} finding(s): {allowlist_path}")
         return 0
 
-    allowlist = load_allowlist(allowlist_path)
-    unexpected = sorted(set(findings) - allowlist)
+    if allowlist_errors:
+        print("Allowlist schema validation failed:")
+        for item in allowlist_errors:
+            print(f" - {item}")
+        return 1
+
+    if stale_entries:
+        print("Allowlist contains stale entries (review_by in the past):")
+        for item in stale_entries:
+            print(f" - {item}")
+        print(f"\nUpdate {allowlist_path} with refreshed review dates and remediation status.")
+        return 1
+
+    unexpected = sorted(set(findings) - set(allowlist_entries))
 
     if unexpected:
         print("Unauthorized monetary float usage detected:")
@@ -93,7 +176,10 @@ def main() -> int:
         print("If intentional and approved, run with --update-allowlist in dedicated PR.")
         return 1
 
-    print(f"Monetary float guard passed. Findings={len(findings)}, allowlisted={len(allowlist)}")
+    print(
+        "Monetary float guard passed. "
+        f"Findings={len(findings)}, allowlisted={len(allowlist_entries)}"
+    )
     return 0
 
 

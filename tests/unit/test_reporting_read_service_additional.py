@@ -129,3 +129,7 @@ async def test_summary_with_explicit_sections_can_exclude_wealth_and_allocation(
 
 def test_to_float_returns_zero_for_non_numeric_string():
     assert ReportingReadService._to_float("not-a-number") == 0.0
+
+
+def test_to_float_accepts_numeric_values():
+    assert ReportingReadService._to_float(7) == 7.0

@@ -120,3 +120,54 @@ def test_build_asset_class_rows_returns_empty_when_total_market_value_non_positi
         }
     }
     assert service._build_asset_class_rows(pas_payload=payload, total_mv=-1.0) == []
+
+
+def test_build_asset_class_rows_ignores_non_dict_positions():
+    service = AggregationService(pas_client=_PasOkClient(), pa_client=_PaOkClient())
+    payload = {
+        "snapshot": {
+            "holdings": {"holdingsByAssetClass": {"EQUITY": ["bad", {"market_value_base": 20}]}}
+        }
+    }
+    rows = service._build_asset_class_rows(pas_payload=payload, total_mv=100.0)
+    assert len(rows) == 1
+    assert rows[0].bucket == "EQUITY"
+    assert rows[0].value == 20.0
+
+
+class _PasMalformedHoldings:
+    def __init__(self, holdings):
+        self._holdings = holdings
+
+    async def get_core_snapshot(
+        self,
+        portfolio_id: str,
+        as_of_date: str,
+        include_sections: list[str],
+    ):
+        return 200, {
+            "snapshot": {
+                "overview": {"total_market_value": 250.0},
+                "holdings": self._holdings,
+            }
+        }
+
+
+@pytest.mark.parametrize(
+    "holdings",
+    [
+        "bad-holdings",
+        {"holdingsByAssetClass": "bad-map"},
+        {"holdingsByAssetClass": {"EQUITY": "bad-list"}},
+    ],
+)
+@pytest.mark.asyncio
+async def test_live_aggregation_handles_malformed_holdings_shapes(holdings):
+    service = AggregationService(
+        pas_client=_PasMalformedHoldings(holdings),
+        pa_client=_PaOkClient(),
+    )
+    response = await service.get_portfolio_aggregation_live("P1", "2026-02-24")
+    metric_map = {row.metric: row.value for row in response.rows}
+    assert metric_map["market_value_base"] == 250.0
+    assert metric_map["position_count"] == 0.0

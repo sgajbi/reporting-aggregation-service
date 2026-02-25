@@ -13,10 +13,14 @@ class AggregationService:
         self._pas_client = pas_client or PasClient(
             base_url=settings.pas_base_url,
             timeout_seconds=settings.upstream_timeout_seconds,
+            max_retries=settings.upstream_max_retries,
+            retry_backoff_seconds=settings.upstream_retry_backoff_seconds,
         )
         self._pa_client = pa_client or PaClient(
             base_url=settings.pa_base_url,
             timeout_seconds=settings.upstream_timeout_seconds,
+            max_retries=settings.upstream_max_retries,
+            retry_backoff_seconds=settings.upstream_retry_backoff_seconds,
         )
 
     async def _fetch_inputs(

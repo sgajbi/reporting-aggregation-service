@@ -2,16 +2,16 @@
   "description": "Approved baseline monetary-float findings. New findings fail CI.",
   "allowlist": [
     "src/app/models/contracts.py:17:value: float",
-    "src/app/services/aggregation_service.py:154:value=float(quantize_money(total_mv)),",
-    "src/app/services/aggregation_service.py:159:value=float(quantize_quantity(position_count)),",
-    "src/app/services/aggregation_service.py:164:value=float(quantize_performance(ytd_return)),",
-    "src/app/services/aggregation_service.py:42:def _parse_market_value(self, position: dict[str, Any]) -> float | None:",
-    "src/app/services/aggregation_service.py:50:return float(quantize_money(value))",
-    "src/app/services/aggregation_service.py:58:return float(quantize_money(value))",
-    "src/app/services/aggregation_service.py:93:value=float(",
-    "src/app/services/reporting_read_service.py:191:def _to_float(value: object) -> float:",
-    "src/app/services/reporting_read_service.py:192:if isinstance(value, (int, float)):",
-    "src/app/services/reporting_read_service.py:193:return float(value)",
-    "src/app/services/reporting_read_service.py:196:return float(value)"
+    "src/app/services/aggregation_service.py:158:value=float(quantize_money(total_mv)),",
+    "src/app/services/aggregation_service.py:163:value=float(quantize_quantity(position_count)),",
+    "src/app/services/aggregation_service.py:168:value=float(quantize_performance(ytd_return)),",
+    "src/app/services/aggregation_service.py:46:def _parse_market_value(self, position: dict[str, Any]) -> float | None:",
+    "src/app/services/aggregation_service.py:54:return float(quantize_money(value))",
+    "src/app/services/aggregation_service.py:62:return float(quantize_money(value))",
+    "src/app/services/aggregation_service.py:97:value=float(",
+    "src/app/services/reporting_read_service.py:195:def _to_float(value: object) -> float:",
+    "src/app/services/reporting_read_service.py:196:if isinstance(value, (int, float)):",
+    "src/app/services/reporting_read_service.py:197:return float(value)",
+    "src/app/services/reporting_read_service.py:200:return float(value)"
   ]
 }

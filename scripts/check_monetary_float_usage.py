@@ -146,9 +146,8 @@ def main() -> int:
     allowlist_entries, allowlist_errors, stale_entries = load_allowlist(allowlist_path)
 
     if args.update_allowlist:
-        default_review_by = (datetime.now(tz=UTC) + timedelta(days=args.default_review_days)).strftime(
-            "%Y-%m-%d"
-        )
+        review_deadline = datetime.now(tz=UTC) + timedelta(days=args.default_review_days)
+        default_review_by = review_deadline.strftime("%Y-%m-%d")
         write_allowlist(allowlist_path, findings, allowlist_entries, default_review_by)
         print(f"Updated allowlist with {len(findings)} finding(s): {allowlist_path}")
         return 0

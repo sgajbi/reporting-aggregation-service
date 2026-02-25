@@ -16,10 +16,14 @@ def test_rounding_golden_vectors() -> None:
     fixture = Path(__file__).resolve().parents[1] / "fixtures" / "rounding-golden-vectors.json"
     payload = json.loads(fixture.read_text(encoding="utf-8"))
     assert ROUNDING_POLICY_VERSION == payload["policy_version"]
-
-    assert [str(quantize_money(v)) for v in payload["vectors"]["money"]] == payload["expected"]["money"]
-    assert [str(quantize_price(v)) for v in payload["vectors"]["price"]] == payload["expected"]["price"]
-    assert [str(quantize_fx_rate(v)) for v in payload["vectors"]["fx_rate"]] == payload["expected"]["fx_rate"]
-    assert [str(quantize_quantity(v)) for v in payload["vectors"]["quantity"]] == payload["expected"]["quantity"]
-    assert [str(quantize_performance(v)) for v in payload["vectors"]["performance"]] == payload["expected"]["performance"]
-    assert [str(quantize_risk(v)) for v in payload["vectors"]["risk"]] == payload["expected"]["risk"]
+    quantizers = {
+        "money": quantize_money,
+        "price": quantize_price,
+        "fx_rate": quantize_fx_rate,
+        "quantity": quantize_quantity,
+        "performance": quantize_performance,
+        "risk": quantize_risk,
+    }
+    for semantic, quantizer in quantizers.items():
+        actual = [str(quantizer(value)) for value in payload["vectors"][semantic]]
+        assert actual == payload["expected"][semantic]

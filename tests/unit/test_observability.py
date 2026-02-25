@@ -11,6 +11,7 @@ from app.observability import (
     resolve_correlation_id,
     resolve_request_id,
     resolve_trace_id,
+    setup_logging,
     trace_id_var,
 )
 
@@ -50,6 +51,13 @@ def test_resolve_trace_id_falls_back_to_x_trace_id():
     assert resolve_trace_id(request) == "trace-x"
 
 
+def test_resolve_trace_id_uses_x_trace_id_when_traceparent_malformed():
+    request = _request_with_headers(
+        {"traceparent": "00-short-0000000000000001-01", "X-Trace-Id": "trace-x"}
+    )
+    assert resolve_trace_id(request) == "trace-x"
+
+
 def test_propagation_headers_include_context_values():
     correlation_id_var.set("corr-ctx")
     request_id_var.set("req-ctx")
@@ -85,3 +93,11 @@ def test_json_formatter_emits_structured_payload_with_extra_fields(monkeypatch):
     assert payload["message"] == "log-message"
     assert payload["endpoint"] == "/health"
     assert payload["latency_ms"] == 12.5
+
+
+def test_setup_logging_initializes_handler_when_root_has_no_handlers():
+    root_logger = logging.getLogger()
+    for handler in list(root_logger.handlers):
+        root_logger.removeHandler(handler)
+    setup_logging()
+    assert root_logger.hasHandlers()

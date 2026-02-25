@@ -99,3 +99,33 @@ async def test_review_default_sections_include_all_pas_payload_groups():
     assert "incomeAndActivity" in response
     assert "holdings" in response
     assert "transactions" in response
+
+
+@pytest.mark.asyncio
+async def test_review_without_performance_section_omits_performance_block():
+    service = ReportingReadService(pas_client=_PasSuccessMinimal(), pa_client=_PaSuccessEmpty())
+    response = await service.get_portfolio_review(
+        "P1",
+        {"as_of_date": "2026-02-24", "sections": ["overview", "holdings"]},
+        None,
+    )
+    assert "overview" in response
+    assert "holdings" in response
+    assert "performance" not in response
+
+
+@pytest.mark.asyncio
+async def test_summary_with_explicit_sections_can_exclude_wealth_and_allocation():
+    service = ReportingReadService(pas_client=_PasSuccessMinimal(), pa_client=_PaSuccessEmpty())
+    response = await service.get_portfolio_summary(
+        "P1",
+        {"as_of_date": "2026-02-24", "sections": ["pnl"]},
+        None,
+    )
+    assert "pnlSummary" not in response
+    assert "wealth" not in response
+    assert "allocation" not in response
+
+
+def test_to_float_returns_zero_for_non_numeric_string():
+    assert ReportingReadService._to_float("not-a-number") == 0.0

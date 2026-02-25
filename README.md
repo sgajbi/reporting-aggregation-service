@@ -37,3 +37,14 @@ python -m pytest tests -q
 ```powershell
 docker compose up -d --build
 ```
+
+## Platform Foundation Commands
+
+- `make migration-smoke`
+- `make migration-apply`
+- `make security-audit`
+
+Standards documentation:
+
+- `docs/standards/migration-contract.md`
+- `docs/standards/data-model-ownership.md`

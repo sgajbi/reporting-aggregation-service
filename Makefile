@@ -1,4 +1,4 @@
-.PHONY: install lint typecheck openapi-gate test test-unit test-integration test-e2e test-coverage security-audit check ci ci-local docker-build clean
+.PHONY: install lint typecheck openapi-gate migration-smoke migration-apply test test-unit test-integration test-e2e test-coverage security-audit check ci ci-local docker-build clean
 
 install:
 	python -m pip install --upgrade pip
@@ -15,6 +15,12 @@ typecheck:
 
 openapi-gate:
 	python scripts/openapi_quality_gate.py
+
+migration-smoke:
+	python scripts/migration_contract_check.py --mode no-schema
+
+migration-apply:
+	python scripts/migration_contract_check.py --mode no-schema
 
 test:
 	$(MAKE) test-unit
@@ -40,7 +46,7 @@ security-audit:
 
 check: lint typecheck openapi-gate test
 
-ci: lint typecheck openapi-gate test-integration test-e2e test-coverage security-audit
+ci: lint typecheck openapi-gate migration-smoke test-integration test-e2e test-coverage security-audit
 
 ci-local: ci
 

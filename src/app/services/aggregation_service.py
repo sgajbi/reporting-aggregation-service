@@ -5,6 +5,7 @@ from app.clients.pa_client import PaClient
 from app.clients.pas_client import PasClient
 from app.config import settings
 from app.models.contracts import AggregationRow, AggregationScope, PortfolioAggregationResponse
+from app.precision_policy import quantize_money, quantize_performance, quantize_quantity, to_decimal
 
 
 class AggregationService:
@@ -46,7 +47,7 @@ class AggregationService:
                 if value is None:
                     continue
                 try:
-                    return float(value)
+                    return float(quantize_money(value))
                 except (TypeError, ValueError):
                     continue
         for key in ("market_value_base", "market_value", "current_value_base", "current_value"):
@@ -54,7 +55,7 @@ class AggregationService:
             if value is None:
                 continue
             try:
-                return float(value)
+                return float(quantize_money(value))
             except (TypeError, ValueError):
                 continue
         return None
@@ -89,7 +90,11 @@ class AggregationService:
                 AggregationRow(
                     bucket=str(asset_class).upper(),
                     metric="weight_pct",
-                    value=(asset_market_value / total_mv) * 100.0,
+                    value=float(
+                        quantize_performance(
+                            (to_decimal(asset_market_value) / to_decimal(total_mv)) * 100
+                        )
+                    ),
                 )
             )
 
@@ -143,11 +148,28 @@ class AggregationService:
                         position_count += len(items)
 
         rows = [
-            AggregationRow(bucket="TOTAL", metric="market_value_base", value=float(total_mv)),
-            AggregationRow(bucket="TOTAL", metric="position_count", value=float(position_count)),
-            AggregationRow(bucket="TOTAL", metric="return_ytd_pct", value=float(ytd_return)),
+            AggregationRow(
+                bucket="TOTAL",
+                metric="market_value_base",
+                value=float(quantize_money(total_mv)),
+            ),
+            AggregationRow(
+                bucket="TOTAL",
+                metric="position_count",
+                value=float(quantize_quantity(position_count)),
+            ),
+            AggregationRow(
+                bucket="TOTAL",
+                metric="return_ytd_pct",
+                value=float(quantize_performance(ytd_return)),
+            ),
         ]
-        rows.extend(self._build_asset_class_rows(pas_payload=pas_payload, total_mv=float(total_mv)))
+        rows.extend(
+            self._build_asset_class_rows(
+                pas_payload=pas_payload,
+                total_mv=float(quantize_money(total_mv)),
+            )
+        )
         return PortfolioAggregationResponse(
             scope=scope,
             generatedAt=datetime.now(UTC),

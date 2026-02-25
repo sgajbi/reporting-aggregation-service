@@ -133,3 +133,7 @@ def test_to_float_returns_zero_for_non_numeric_string():
 
 def test_to_float_accepts_numeric_values():
     assert ReportingReadService._to_float(7) == 7.0
+
+
+def test_to_float_returns_zero_for_unsupported_type():
+    assert ReportingReadService._to_float(object()) == 0.0

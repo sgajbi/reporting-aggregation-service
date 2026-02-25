@@ -9,10 +9,10 @@ repo_root = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(repo_root))
 sys.path.insert(0, str(repo_root / "src"))
 
-from src.app.main import app
-
 
 def main() -> int:
+    from src.app.main import app
+
     schema = app.openapi()
     paths = schema.get("paths", {})
     if not paths:

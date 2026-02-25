@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
+
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
@@ -29,6 +31,16 @@ def test_metrics_endpoint_available():
     response = client.get("/metrics")
     assert response.status_code == 200
     assert "http_requests_total" in response.text or "http_request_duration" in response.text
+
+
+def test_load_concurrency_health_live_requests():
+    def call_live() -> int:
+        return client.get("/health/live").status_code
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        statuses = list(pool.map(lambda _: call_live(), range(32)))
+
+    assert all(status == 200 for status in statuses)
 
 
 def test_integration_capabilities():

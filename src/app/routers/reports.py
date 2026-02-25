@@ -47,15 +47,7 @@ async def get_portfolio_summary(
     portfolio_id: Annotated[str, Path(description="Canonical portfolio identifier.")],
     request: dict[str, Any],
     section_limit: Annotated[
-        int,
-        Query(
-            alias="sectionLimit",
-            ge=1,
-            le=20,
-            description=(
-                "Maximum sections accepted from request payload to guard oversized report requests."
-            ),
-        ),
+        int, Query(alias="sectionLimit", ge=1, le=20, description="pagination")
     ] = 10,
     service: ReportingReadService = Depends(get_reporting_read_service),
     correlation_id: Annotated[str | None, Header(alias="X-Correlation-ID")] = None,
@@ -80,15 +72,7 @@ async def get_portfolio_review(
     portfolio_id: Annotated[str, Path(description="Canonical portfolio identifier.")],
     request: dict[str, Any],
     section_limit: Annotated[
-        int,
-        Query(
-            alias="sectionLimit",
-            ge=1,
-            le=20,
-            description=(
-                "Maximum sections accepted from request payload to guard oversized report requests."
-            ),
-        ),
+        int, Query(alias="sectionLimit", ge=1, le=20, description="pagination")
     ] = 10,
     service: ReportingReadService = Depends(get_reporting_read_service),
     correlation_id: Annotated[str | None, Header(alias="X-Correlation-ID")] = None,

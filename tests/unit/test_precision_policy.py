@@ -4,6 +4,7 @@ import pytest
 
 from app.precision_policy import (
     ROUNDING_POLICY_VERSION,
+    _decimal_scale,
     normalize_input,
     quantize_fx_rate,
     quantize_money,
@@ -57,3 +58,7 @@ def test_intermediate_precision_preserved_before_final_quantize() -> None:
 def test_normalize_input_rejects_unsupported_semantic_type() -> None:
     with pytest.raises(ValueError, match="Unsupported semantic type: unknown"):
         normalize_input("1.23", "unknown")
+
+
+def test_decimal_scale_handles_special_decimal_exponent() -> None:
+    assert _decimal_scale(Decimal("NaN")) == 0

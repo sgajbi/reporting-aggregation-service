@@ -32,6 +32,8 @@ def to_decimal(value: Any) -> Decimal:
 
 def _decimal_scale(value: Decimal) -> int:
     exponent = value.as_tuple().exponent
+    if not isinstance(exponent, int):
+        return 0
     return -exponent if exponent < 0 else 0
 
 

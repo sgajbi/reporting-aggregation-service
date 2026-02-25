@@ -24,6 +24,14 @@ This repository adopts the platform-wide standard defined in pbwm-platform-docs/
 - Any future cache introduction must define explicit TTL, invalidation ownership, and stale-read behavior.
 - Cache policy changes require ADR/RFC references.
 
+## Scale Signal Metrics Coverage
+
+- RAS exposes `/metrics` for request latency/error/throughput and report-path instrumentation.
+- Platform-shared infrastructure metrics for CPU/memory, DB performance, and queue lag are sourced from:
+  - `pbwm-platform-docs/platform-stack/prometheus/prometheus.yml`
+  - `pbwm-platform-docs/platform-stack/docker-compose.yml`
+  - `pbwm-platform-docs/Platform Observability Standards.md`
+
 ## Availability Baseline
 
 - Internal SLO baseline: p95 report read latency < 500 ms for summary/review payload assembly.

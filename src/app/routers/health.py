@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request, Response, status
 
 router = APIRouter(tags=["Health"])
 
@@ -26,5 +26,8 @@ def live() -> dict[str, str]:
     summary="Service readiness",
     description="Readiness endpoint for orchestration and integration checks.",
 )
-def ready() -> dict[str, str]:
+def ready(request: Request, response: Response) -> dict[str, str]:
+    if bool(getattr(request.app.state, "is_draining", False)):
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        return {"status": "draining"}
     return {"status": "ready"}

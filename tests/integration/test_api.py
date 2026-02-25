@@ -27,6 +27,25 @@ def test_health_live_and_ready():
     assert ready.json() == {"status": "ready"}
 
 
+def test_health_ready_returns_503_when_draining():
+    app.state.is_draining = True
+    response = client.get("/health/ready")
+    app.state.is_draining = False
+
+    assert response.status_code == 503
+    assert response.json() == {"status": "draining"}
+
+
+def test_lifespan_sets_drain_flag_on_shutdown():
+    with TestClient(app) as local_client:
+        assert app.state.is_draining is False
+        response = local_client.get("/health/ready")
+        assert response.status_code == 200
+
+    assert app.state.is_draining is True
+    app.state.is_draining = False
+
+
 def test_metrics_endpoint_available():
     response = client.get("/metrics")
     assert response.status_code == 200
@@ -39,6 +58,26 @@ def test_load_concurrency_health_live_requests():
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         statuses = list(pool.map(lambda _: call_live(), range(32)))
+
+    assert all(status == 200 for status in statuses)
+
+
+def test_load_concurrency_health_ready_requests():
+    def call_ready() -> int:
+        return client.get("/health/ready").status_code
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        statuses = list(pool.map(lambda _: call_ready(), range(32)))
+
+    assert all(status == 200 for status in statuses)
+
+
+def test_load_concurrency_metrics_requests():
+    def call_metrics() -> int:
+        return client.get("/metrics").status_code
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        statuses = list(pool.map(lambda _: call_metrics(), range(24)))
 
     assert all(status == 200 for status in statuses)
 

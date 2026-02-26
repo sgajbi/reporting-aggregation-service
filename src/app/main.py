@@ -45,4 +45,3 @@ app.include_router(health_router)
 app.include_router(integration_router)
 app.include_router(aggregations_router)
 app.include_router(reports_router)
-

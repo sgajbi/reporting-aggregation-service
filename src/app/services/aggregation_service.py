@@ -179,4 +179,3 @@ class AggregationService:
             generatedAt=datetime.now(UTC),
             rows=rows,
         )
-

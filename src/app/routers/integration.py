@@ -34,4 +34,3 @@ def get_capabilities(
         ],
         supportedInputModes=["pas_ref"],
     )
-

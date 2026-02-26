@@ -41,4 +41,3 @@ async def get_portfolio_aggregation(
             portfolio_id=portfolio_id, as_of_date=as_of_date
         )
     return service.get_portfolio_aggregation(portfolio_id=portfolio_id, as_of_date=as_of_date)
-

@@ -83,4 +83,3 @@ async def get_portfolio_review(
         request_payload=_apply_section_limit(request, section_limit),
         correlation_id=correlation_id,
     )
-

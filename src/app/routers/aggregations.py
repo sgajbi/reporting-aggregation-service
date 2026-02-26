@@ -14,7 +14,8 @@ router = APIRouter(prefix="/aggregations", tags=["Aggregations"])
     summary="Get portfolio aggregation",
     description=(
         "Returns reporting-ready aggregated rows for a portfolio by as-of date. "
-        "Current slice uses deterministic placeholder rows while PAS/PA connectors are integrated."
+        "Current slice uses deterministic placeholder rows while "
+        "lotus-core/lotus-performance connectors are integrated."
     ),
 )
 async def get_portfolio_aggregation(
@@ -25,7 +26,11 @@ async def get_portfolio_aggregation(
     live: Annotated[
         bool,
         Query(
-            description="If true, fetches PAS and PA upstream contracts before aggregation.",
+            description=(
+                "If true, fetches lotus-core and "
+                "lotus-performance upstream contracts "
+                "before aggregation."
+            ),
             examples=[True],
         ),
     ] = True,

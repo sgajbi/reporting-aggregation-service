@@ -1,7 +1,7 @@
 # Reporting & Aggregation Service
 
 Service scope:
-- build aggregated read models for reporting from PAS and PA data contracts
+- build aggregated read models for reporting from lotus-core and lotus-performance data contracts
 - generate reporting artifacts metadata and download references
 - own reporting endpoints for portfolio summary and portfolio review payloads
 
@@ -22,8 +22,8 @@ Key reporting endpoints:
 - `POST /reports/portfolios/{portfolio_id}/review`
 
 Current orchestration model:
-- RAS composes summary/review responses from PAS core snapshot contracts.
-- RAS enriches review performance section from PA analytics contracts.
+- lotus-report composes summary/review responses from lotus-core core snapshot contracts.
+- lotus-report enriches review performance section from lotus-performance analytics contracts.
 
 ## Tests
 
@@ -48,4 +48,5 @@ Standards documentation:
 
 - `docs/standards/migration-contract.md`
 - `docs/standards/data-model-ownership.md`
+
 

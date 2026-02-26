@@ -111,7 +111,7 @@ class AggregationService:
         as_of_date: str,
     ) -> PortfolioAggregationResponse:
         scope = AggregationScope(portfolioId=portfolio_id, asOfDate=as_of_date)
-        # Placeholder deterministic rows until PAS+PA connectors are added.
+        # Placeholder deterministic rows until lotus-core+lotus-performance connectors are added.
         rows = [
             AggregationRow(bucket="TOTAL", metric="market_value_base", value=1_250_000.0),
             AggregationRow(bucket="EQUITY", metric="weight_pct", value=45.2),

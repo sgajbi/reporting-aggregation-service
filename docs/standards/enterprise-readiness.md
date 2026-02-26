@@ -1,7 +1,7 @@
-# Enterprise Readiness Baseline (RAS)
+# Enterprise Readiness Baseline (lotus-report)
 
 - Standard reference: `lotus-platform/Enterprise Readiness Standard.md`
-- Scope: reporting/aggregation read and export APIs consuming PAS/PA sources.
+- Scope: reporting/aggregation read and export APIs consuming lotus-core/lotus-performance sources.
 - Change control: RFC for standard changes, ADR for temporary deviations.
 
 ## Security and IAM Baseline
@@ -61,4 +61,5 @@ Evidence:
 ## Deviations
 
 - Deviations require ADR with mitigation and expiry review date.
+
 

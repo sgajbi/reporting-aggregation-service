@@ -42,5 +42,17 @@ class PaClient:
             backoff_seconds=self._retry_backoff_seconds,
         )
 
+    async def calculate_twr(self, payload: dict[str, Any]) -> tuple[int, dict[str, Any]]:
+        url = f"{self._base_url}/performance/twr"
+        headers = propagation_headers()
+        return await post_with_retry(
+            url=url,
+            timeout_seconds=self._timeout_seconds,
+            json_body=payload,
+            headers=headers,
+            max_retries=self._max_retries,
+            backoff_seconds=self._retry_backoff_seconds,
+        )
+
     def _parse_payload(self, response: httpx.Response) -> dict[str, Any]:
         return response_payload(response)

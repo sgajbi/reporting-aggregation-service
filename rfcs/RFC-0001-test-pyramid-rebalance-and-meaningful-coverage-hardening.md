@@ -32,7 +32,7 @@ Harden tests to:
 ## Implementation Summary
 
 - Added deep unit tests for:
-  - PA/PAS clients (payload parsing, contract payloads, propagation headers)
+  - lotus-performance/lotus-core clients (payload parsing, contract payloads, propagation headers)
   - Observability utilities (correlation/request/trace id handling, structured logs)
   - Aggregation service branch logic and fallback behavior
   - Reporting read service validation and section behavior

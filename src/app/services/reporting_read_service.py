@@ -2,6 +2,7 @@ from fastapi import HTTPException, status
 
 from app.clients.pa_client import PaClient
 from app.clients.pas_client import PasClient
+from app.clients.risk_client import RiskClient
 from app.config import settings
 
 
@@ -10,6 +11,7 @@ class ReportingReadService:
         self,
         pas_client: PasClient | None = None,
         pa_client: PaClient | None = None,
+        risk_client: RiskClient | None = None,
     ):
         self._pas_client = pas_client or PasClient(
             base_url=settings.pas_base_url,
@@ -19,6 +21,12 @@ class ReportingReadService:
         )
         self._pa_client = pa_client or PaClient(
             base_url=settings.pa_base_url,
+            timeout_seconds=settings.upstream_timeout_seconds,
+            max_retries=settings.upstream_max_retries,
+            retry_backoff_seconds=settings.upstream_retry_backoff_seconds,
+        )
+        self._risk_client = risk_client or RiskClient(
+            base_url=settings.risk_base_url,
             timeout_seconds=settings.upstream_timeout_seconds,
             max_retries=settings.upstream_max_retries,
             retry_backoff_seconds=settings.upstream_retry_backoff_seconds,
@@ -84,6 +92,7 @@ class ReportingReadService:
                 "OVERVIEW",
                 "ALLOCATION",
                 "PERFORMANCE",
+                "RISK_ANALYTICS",
                 "INCOME_AND_ACTIVITY",
                 "HOLDINGS",
                 "TRANSACTIONS",
@@ -126,7 +135,93 @@ class ReportingReadService:
             else:
                 response["performance"] = None
 
+        if "RISK_ANALYTICS" in requested_sections:
+            response["riskAnalytics"] = await self._build_risk_analytics(
+                portfolio_id=portfolio_id,
+                as_of_date=as_of_date,
+            )
+
         return response
+
+    async def _build_risk_analytics(
+        self,
+        portfolio_id: str,
+        as_of_date: str,
+    ) -> dict[str, object] | None:
+        perf_status, perf_payload = await self._pas_client.get_performance_input(
+            portfolio_id=portfolio_id,
+            as_of_date=as_of_date,
+            lookback_days=1200,
+        )
+        if perf_status >= status.HTTP_400_BAD_REQUEST:
+            return None
+
+        valuation_points = perf_payload.get("valuationPoints")
+        performance_start_date = perf_payload.get("performanceStartDate")
+        if not isinstance(valuation_points, list) or not valuation_points:
+            return None
+        if not isinstance(performance_start_date, str):
+            return None
+
+        twr_payload = {
+            "portfolio_id": portfolio_id,
+            "performance_start_date": performance_start_date,
+            "metric_basis": "NET",
+            "report_start_date": performance_start_date,
+            "report_end_date": as_of_date,
+            "analyses": [{"period": "EXPLICIT", "frequencies": ["daily"]}],
+            "valuation_points": valuation_points,
+            "currency": perf_payload.get("baseCurrency", "USD"),
+            "output": {"include_cumulative": True, "include_timeseries": True},
+        }
+        twr_status, twr_response = await self._pa_client.calculate_twr(twr_payload)
+        if twr_status >= status.HTTP_400_BAD_REQUEST:
+            return None
+
+        returns = self._extract_daily_returns_from_twr(twr_response)
+        if not returns:
+            return None
+
+        risk_payload = {
+            "scope": {"asOfDate": as_of_date, "netOrGross": "NET"},
+            "periods": [{"type": "YTD"}, {"type": "THREE_YEAR"}],
+            "metrics": ["VOLATILITY", "SHARPE", "DRAWDOWN", "VAR"],
+            "portfolioOpenDate": performance_start_date,
+            "returns": returns,
+            "benchmarkReturns": [],
+        }
+        risk_status, risk_response = await self._risk_client.calculate_risk(risk_payload)
+        if risk_status >= status.HTTP_400_BAD_REQUEST:
+            return None
+
+        results = self._as_dict(risk_response.get("results"))
+        return {"results": results}
+
+    def _extract_daily_returns_from_twr(
+        self,
+        twr_payload: dict[str, object],
+    ) -> list[dict[str, object]]:
+        results_by_period = self._as_dict(twr_payload.get("results_by_period"))
+        period_payload = next(iter(results_by_period.values()), None)
+        if not isinstance(period_payload, dict):
+            return []
+
+        breakdowns = self._as_dict(period_payload.get("breakdowns"))
+        daily_items = breakdowns.get("daily")
+        if not isinstance(daily_items, list):
+            return []
+
+        returns: list[dict[str, object]] = []
+        for item in daily_items:
+            if not isinstance(item, dict):
+                continue
+            period = item.get("period")
+            summary = self._as_dict(item.get("summary"))
+            value = summary.get("period_return_pct")
+            if not isinstance(period, str) or not isinstance(value, (int, float)):
+                continue
+            returns.append({"date": period[:10], "value": float(value)})
+        return returns
 
     def _unwrap_pas_snapshot(
         self, status_code: int, payload: dict[str, object]
@@ -137,13 +232,13 @@ class ReportingReadService:
                 return snapshot
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="PAS core snapshot payload missing snapshot section.",
+                detail="lotus-core core snapshot payload missing snapshot section.",
             )
         if status_code == status.HTTP_404_NOT_FOUND:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=payload.get("detail"))
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"PAS core snapshot upstream failure: {payload}",
+            detail=f"lotus-core core snapshot upstream failure: {payload}",
         )
 
     def _map_pa_performance(self, payload: dict[str, object]) -> dict[str, object]:

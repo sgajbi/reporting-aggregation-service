@@ -11,21 +11,22 @@ router = APIRouter(prefix="/integration", tags=["Integration"])
     response_model=IntegrationCapabilitiesResponse,
     summary="Get Integration Capabilities",
     description=(
-        "Returns RAS integration capabilities for BFF/DPM contract negotiation and "
+        "Returns lotus-report integration capabilities for "
+        "lotus-gateway/lotus-manage contract negotiation and "
         "feature toggling."
     ),
 )
 def get_capabilities(
-    consumer_system: str = Query("BFF", alias="consumerSystem"),
+    consumer_system: str = Query("lotus-gateway", alias="consumerSystem"),
     tenant_id: str = Query("default", alias="tenantId"),
 ) -> IntegrationCapabilitiesResponse:
     _ = (consumer_system, tenant_id)
     return IntegrationCapabilitiesResponse(
         contractVersion=settings.contract_version,
         features=[
-            {"key": "ras.reporting.portfolio_summary", "enabled": True},
-            {"key": "ras.reporting.portfolio_review", "enabled": True},
-            {"key": "ras.aggregation.portfolio_snapshot", "enabled": True},
+            {"key": "lotus-report.reporting.portfolio_summary", "enabled": True},
+            {"key": "lotus-report.reporting.portfolio_review", "enabled": True},
+            {"key": "lotus-report.aggregation.portfolio_snapshot", "enabled": True},
         ],
         workflows=[
             {"workflow_key": "portfolio_reporting", "enabled": True},

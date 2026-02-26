@@ -141,3 +141,33 @@ async def test_middleware_accepts_invalid_content_length_and_sets_policy_header(
     response = await middleware(request, _call_next)
     assert response.status_code == 200
     assert response.headers["X-Enterprise-Policy-Version"] == "2.0.0"
+
+
+def test_validate_runtime_config_raises_when_enforced(monkeypatch):
+    monkeypatch.setenv("ENTERPRISE_POLICY_VERSION", " ")
+    monkeypatch.setenv("ENTERPRISE_ENFORCE_RUNTIME_CONFIG", "true")
+    with pytest.raises(RuntimeError, match="enterprise_runtime_config_invalid"):
+        validate_enterprise_runtime_config()
+
+
+def test_authorize_write_request_allows_when_rule_not_matching_path(monkeypatch):
+    monkeypatch.setenv("ENTERPRISE_ENFORCE_AUTHZ", "true")
+    monkeypatch.setenv(
+        "ENTERPRISE_CAPABILITY_RULES_JSON", json.dumps({"POST /other": "reports.write"})
+    )
+    headers = {
+        "X-Actor-Id": "a1",
+        "X-Tenant-Id": "t1",
+        "X-Role": "ops",
+        "X-Correlation-Id": "c1",
+        "X-Service-Identity": "lotus-report",
+    }
+    allowed, reason = authorize_write_request("POST", "/reports/export", headers)
+    assert allowed is True
+    assert reason is None
+
+
+def test_redaction_handles_list_payloads():
+    redacted = redact_sensitive([{"token": "x"}, {"safe": "ok"}])
+    assert redacted[0]["token"] == "***REDACTED***"
+    assert redacted[1]["safe"] == "ok"

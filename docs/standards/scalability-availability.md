@@ -1,6 +1,6 @@
 # Scalability and Availability Standard Alignment
 
-Service: RAS
+Service: lotus-report
 
 This repository adopts the platform-wide standard defined in lotus-platform/Scalability and Availability Standard.md.
 
@@ -26,7 +26,7 @@ This repository adopts the platform-wide standard defined in lotus-platform/Scal
 
 ## Scale Signal Metrics Coverage
 
-- RAS exposes `/metrics` for request latency/error/throughput and report-path instrumentation.
+- lotus-report exposes `/metrics` for request latency/error/throughput and report-path instrumentation.
 - Platform-shared infrastructure metrics for CPU/memory, DB performance, and queue lag are sourced from:
   - `lotus-platform/platform-stack/prometheus/prometheus.yml`
   - `lotus-platform/platform-stack/docker-compose.yml`
@@ -46,4 +46,5 @@ This repository adopts the platform-wide standard defined in lotus-platform/Scal
 ## Deviation Rule
 
 Any deviation from this standard requires ADR/RFC with remediation timeline.
+
 

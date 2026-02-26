@@ -26,7 +26,8 @@ def _apply_section_limit(payload: dict[str, Any], section_limit: int) -> dict[st
     response_model=ReportResponse,
     summary="Generate report",
     description=(
-        "Generates a report metadata record from aggregated PAS+PA backed views. "
+        "Generates a report metadata record from aggregated "
+        "lotus-core+lotus-performance backed views. "
         "Current slice supports JSON metadata and PDF placeholder download URL."
     ),
 )
@@ -37,10 +38,10 @@ def generate_report(request: ReportRequest) -> ReportResponse:
 @router.post(
     "/portfolios/{portfolio_id}/summary",
     response_model=dict[str, Any],
-    summary="Get portfolio summary (RAS-owned)",
+    summary="Get portfolio summary (lotus-report-owned)",
     description=(
-        "RAS-owned reporting endpoint for consolidated portfolio summary. "
-        "Phase-1 source is PAS upstream while ownership moves to RAS."
+        "lotus-report-owned reporting endpoint for consolidated portfolio summary. "
+        "Phase-1 source is lotus-core upstream while ownership moves to lotus-report."
     ),
 )
 async def get_portfolio_summary(
@@ -62,10 +63,10 @@ async def get_portfolio_summary(
 @router.post(
     "/portfolios/{portfolio_id}/review",
     response_model=dict[str, Any],
-    summary="Get portfolio review report (RAS-owned)",
+    summary="Get portfolio review report (lotus-report-owned)",
     description=(
-        "RAS-owned reporting endpoint for portfolio review report payload. "
-        "Phase-1 source is PAS upstream while ownership moves to RAS."
+        "lotus-report-owned reporting endpoint for portfolio review report payload. "
+        "Phase-1 source is lotus-core upstream while ownership moves to lotus-report."
     ),
 )
 async def get_portfolio_review(

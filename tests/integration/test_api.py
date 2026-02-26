@@ -83,7 +83,7 @@ def test_load_concurrency_metrics_requests():
 
 
 def test_integration_capabilities():
-    response = client.get("/integration/capabilities?consumerSystem=BFF&tenantId=default")
+    response = client.get("/integration/capabilities?consumerSystem=lotus-gateway&tenantId=default")
     assert response.status_code == 200
     body = response.json()
     assert body["sourceService"] == "lotus-report"
@@ -168,7 +168,7 @@ class _StubReportingReadServiceFailure:
     async def get_portfolio_review(
         self, portfolio_id: str, request_payload: dict, correlation_id: str | None
     ) -> dict:
-        raise HTTPException(status_code=502, detail="PAS core snapshot upstream failure")
+        raise HTTPException(status_code=502, detail="lotus-core core snapshot upstream failure")
 
 
 def test_ras_portfolio_summary_endpoint():

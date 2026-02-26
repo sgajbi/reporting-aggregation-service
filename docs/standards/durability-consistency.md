@@ -1,7 +1,7 @@
-# Durability and Consistency Standard (RAS)
+# Durability and Consistency Standard (lotus-report)
 
 - Standard reference: `lotus-platform/Durability and Consistency Standard.md`
-- Scope: reporting and aggregation read APIs built from PAS/PA sourced data.
+- Scope: reporting and aggregation read APIs built from lotus-core/lotus-performance sourced data.
 - Change control: RFC required for standard changes; ADR required for temporary deviations.
 
 ## Workflow Consistency Classification
@@ -10,11 +10,11 @@
   - deterministic report payload generation for same request and `as_of_date`
   - reproducibility metadata in response contracts
 - Eventual consistency:
-  - upstream PAS/PA source freshness prior to request execution
+  - upstream lotus-core/lotus-performance source freshness prior to request execution
 
 ## Idempotency and Write Semantics
 
-- RAS currently exposes read-only reporting endpoints (no core write paths).
+- lotus-report currently exposes read-only reporting endpoints (no core write paths).
 - If write endpoints are introduced, `Idempotency-Key` will be mandatory.
 - Evidence:
   - `src/app/routers/reports.py`
@@ -61,6 +61,7 @@
 
 ## Deviations
 
-- Any future durable write path introduced in RAS without explicit idempotency and atomicity controls requires ADR with expiry review date.
+- Any future durable write path introduced in lotus-report without explicit idempotency and atomicity controls requires ADR with expiry review date.
+
 
 

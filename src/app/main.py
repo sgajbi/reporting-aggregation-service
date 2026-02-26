@@ -25,7 +25,9 @@ app = FastAPI(
     title="Reporting and Aggregation Service",
     version="0.1.0",
     description=(
-        "Generates reporting-ready aggregated views from PAS core data and PA analytics outputs."
+        "Generates reporting-ready aggregated views from "
+        "lotus-core core data and lotus-performance analytics "
+        "outputs."
     ),
     openapi_tags=[
         {"name": "Health", "description": "Service health and readiness endpoints."},

@@ -2,6 +2,7 @@ import pytest
 
 from app.clients.pa_client import PaClient
 from app.clients.pas_client import PasClient
+from app.clients.risk_client import RiskClient
 from app.observability import correlation_id_var, request_id_var, trace_id_var
 
 
@@ -163,3 +164,46 @@ async def test_pas_client_get_portfolio_review_posts_expected_contract(monkeypat
     assert payload["portfolio_id"] == "P4"
     assert recorder.calls[0]["url"] == "http://pas/portfolios/P4/review"
     assert recorder.calls[0]["headers"] == {}
+
+
+@pytest.mark.asyncio
+async def test_pa_client_calculate_twr_posts_expected_contract(monkeypatch):
+    response = _FakeResponse(status_code=200, payload={"results_by_period": {}})
+    recorder = _RecordingAsyncClient(response=response)
+    monkeypatch.setattr("app.clients.pa_client.httpx.AsyncClient", lambda timeout: recorder)
+    client = PaClient(base_url="http://pa/", timeout_seconds=3.0)
+
+    status_code, payload = await client.calculate_twr({"portfolio_id": "P1"})
+    assert status_code == 200
+    assert payload == {"results_by_period": {}}
+    assert recorder.calls[0]["url"] == "http://pa/performance/twr"
+
+
+@pytest.mark.asyncio
+async def test_pas_client_get_performance_input_posts_expected_contract(monkeypatch):
+    response = _FakeResponse(status_code=200, payload={"valuationPoints": []})
+    recorder = _RecordingAsyncClient(response=response)
+    monkeypatch.setattr("app.clients.pas_client.httpx.AsyncClient", lambda timeout: recorder)
+    client = PasClient(base_url="http://pas/", timeout_seconds=3.0)
+
+    status_code, payload = await client.get_performance_input(
+        portfolio_id="P2", as_of_date="2026-02-24", lookback_days=365
+    )
+    assert status_code == 200
+    assert payload == {"valuationPoints": []}
+    assert recorder.calls[0]["url"] == "http://pas/integration/portfolios/P2/performance-input"
+    assert recorder.calls[0]["json"]["lookbackDays"] == 365
+
+
+@pytest.mark.asyncio
+async def test_risk_client_calculate_risk_posts_expected_contract(monkeypatch):
+    async def _fake_post_with_retry(**kwargs):
+        return 200, {"results": {}}, kwargs
+
+    monkeypatch.setattr("app.clients.risk_client.post_with_retry", _fake_post_with_retry)
+    client = RiskClient(base_url="http://risk/", timeout_seconds=3.0)
+
+    status_code, payload, kwargs = await client.calculate_risk({"metrics": ["VAR"]})
+    assert status_code == 200
+    assert payload == {"results": {}}
+    assert kwargs["url"] == "http://risk/analytics/risk/calculate"

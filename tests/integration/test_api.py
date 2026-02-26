@@ -251,3 +251,14 @@ def test_ras_portfolio_summary_includes_correlation_headers():
     assert response.headers.get("X-Correlation-Id") == "corr-ras-it-001"
     assert response.headers.get("X-Request-Id")
     assert response.headers.get("X-Trace-Id")
+
+
+def test_ras_portfolio_summary_rejects_invalid_section_limit():
+    app.dependency_overrides[get_reporting_read_service] = lambda: _StubReportingReadService()
+    response = client.post(
+        "/reports/portfolios/DEMO_DPM_EUR_001/summary?sectionLimit=0",
+        json={"as_of_date": "2026-02-24", "sections": ["WEALTH"]},
+    )
+    app.dependency_overrides.pop(get_reporting_read_service, None)
+
+    assert response.status_code == 422

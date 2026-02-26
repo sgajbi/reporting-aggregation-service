@@ -75,3 +75,22 @@ def test_e2e_service_observability_contract_headers():
     assert response.headers["X-Correlation-Id"] == "cid-e2e-obs"
     assert response.headers.get("X-Request-Id")
     assert response.headers.get("X-Trace-Id")
+
+
+def test_e2e_health_live_contract():
+    response = client.get("/health/live", headers={"X-Correlation-Id": "cid-e2e-live"})
+    assert response.status_code == 200
+    assert response.json()["status"] == "live"
+    assert response.headers["X-Correlation-Id"] == "cid-e2e-live"
+
+
+def test_e2e_summary_section_limit_rejects_out_of_range():
+    app.dependency_overrides[get_reporting_read_service] = lambda: _WorkflowReportingReadService()
+    response = client.post(
+        "/reports/portfolios/DEMO_CA_USD_001/summary?sectionLimit=21",
+        headers={"X-Correlation-ID": "cid-e2e-limit"},
+        json={"as_of_date": "2026-02-24", "sections": ["WEALTH"]},
+    )
+    app.dependency_overrides.pop(get_reporting_read_service, None)
+
+    assert response.status_code == 422

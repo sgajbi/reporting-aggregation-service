@@ -35,6 +35,6 @@ This repository adopts the platform-wide mandatory standard defined in `lotus-pl
 
 - Shared golden fixture: `tests/fixtures/rounding-golden-vectors.json`.
 - Platform check: `lotus-platform/automation/Validate-Rounding-Consistency.ps1`.
+- Automation guide: `lotus-platform/automation/docs/Automation-Guide.md`.
 - Evidence artifact: `Rounding Consistency Report`.
-
 

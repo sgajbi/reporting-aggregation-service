@@ -1,6 +1,6 @@
 # Migration Contract Standard
 
-- Service: `reporting-aggregation-service`
+- Service: `lotus-report`
 - Persistence mode: **no persistent schema** (stateless reporting facade in current phase).
 - Migration policy: **versioned migration contract is still mandatory** even in no-schema mode.
 
@@ -21,3 +21,4 @@ If/when persistent storage is introduced:
 1. Add versioned migrations.
 2. Add deterministic migration apply checks in CI.
 3. Keep forward-only migration policy with explicit rollback strategy documented.
+

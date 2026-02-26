@@ -1,6 +1,6 @@
 # Durability and Consistency Standard (RAS)
 
-- Standard reference: `pbwm-platform-docs/Durability and Consistency Standard.md`
+- Standard reference: `lotus-platform/Durability and Consistency Standard.md`
 - Scope: reporting and aggregation read APIs built from PAS/PA sourced data.
 - Change control: RFC required for standard changes; ADR required for temporary deviations.
 
@@ -62,4 +62,5 @@
 ## Deviations
 
 - Any future durable write path introduced in RAS without explicit idempotency and atomicity controls requires ADR with expiry review date.
+
 

@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "reporting-aggregation-service"
+name = "lotus-report"
 version = "0.1.0"
 description = "Reporting and aggregation service for PBWM platform."
 requires-python = ">=3.12"
@@ -44,3 +44,5 @@ select = ["E", "F", "I"]
 [tool.coverage.run]
 branch = true
 source = ["src/app"]
+
+

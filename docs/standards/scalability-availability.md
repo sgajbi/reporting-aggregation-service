@@ -2,7 +2,7 @@
 
 Service: RAS
 
-This repository adopts the platform-wide standard defined in pbwm-platform-docs/Scalability and Availability Standard.md.
+This repository adopts the platform-wide standard defined in lotus-platform/Scalability and Availability Standard.md.
 
 ## Implemented Baseline
 
@@ -28,9 +28,9 @@ This repository adopts the platform-wide standard defined in pbwm-platform-docs/
 
 - RAS exposes `/metrics` for request latency/error/throughput and report-path instrumentation.
 - Platform-shared infrastructure metrics for CPU/memory, DB performance, and queue lag are sourced from:
-  - `pbwm-platform-docs/platform-stack/prometheus/prometheus.yml`
-  - `pbwm-platform-docs/platform-stack/docker-compose.yml`
-  - `pbwm-platform-docs/Platform Observability Standards.md`
+  - `lotus-platform/platform-stack/prometheus/prometheus.yml`
+  - `lotus-platform/platform-stack/docker-compose.yml`
+  - `lotus-platform/Platform Observability Standards.md`
 
 ## Availability Baseline
 
@@ -40,9 +40,10 @@ This repository adopts the platform-wide standard defined in pbwm-platform-docs/
 
 ## Required Evidence
 
-- Compliance matrix entry in pbwm-platform-docs/output/scalability-availability-compliance.md.
+- Compliance matrix entry in lotus-platform/output/scalability-availability-compliance.md.
 - Service-specific tests covering resilience and concurrency-critical paths.
 
 ## Deviation Rule
 
 Any deviation from this standard requires ADR/RFC with remediation timeline.
+

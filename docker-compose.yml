@@ -1,6 +1,8 @@
 services:
-  reporting-aggregation-service:
+  lotus-report:
     build: .
-    container_name: reporting-aggregation-service
+    container_name: lotus-report
     ports:
       - "8300:8300"
+
+

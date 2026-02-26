@@ -1,6 +1,6 @@
 # Data Model Ownership
 
-- Service: `reporting-aggregation-service`
+- Service: `lotus-report`
 - Ownership status: **no persisted domain entities** in current phase.
 - Domain responsibility: reporting orchestration and aggregation payload shaping.
 
@@ -12,5 +12,6 @@
 
 ## Naming and Vocabulary Rules
 
-- Follow platform glossary terms from `pbwm-platform-docs/Domain Vocabulary Glossary.md`.
+- Follow platform glossary terms from `lotus-platform/Domain Vocabulary Glossary.md`.
 - Do not introduce service-local synonyms for canonical portfolio, position, transaction, valuation, or performance terms.
+

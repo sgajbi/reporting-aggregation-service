@@ -10,7 +10,7 @@ Proposed
 
 ## Problem Statement
 
-`reporting-aggregation-service` had low baseline coverage and an imbalanced test pyramid:
+`lotus-report` had low baseline coverage and an imbalanced test pyramid:
 
 - Coverage: `83%`
 - Unit: `46.67%`
@@ -59,4 +59,5 @@ Harden tests to:
 
 - Additional test maintenance cost, offset by stronger regression protection.
 - Some tests still produce framework deprecation warnings; they do not block behavior but should be cleaned in follow-up.
+
 

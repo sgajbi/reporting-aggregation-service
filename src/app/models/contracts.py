@@ -18,7 +18,7 @@ class AggregationRow(BaseModel):
 
 
 class PortfolioAggregationResponse(BaseModel):
-    source_service: str = Field("reporting-aggregation-service", alias="sourceService")
+    source_service: str = Field("lotus-report", alias="sourceService")
     scope: AggregationScope
     generated_at: datetime = Field(..., alias="generatedAt")
     rows: list[AggregationRow]
@@ -49,7 +49,7 @@ class ReportResponse(BaseModel):
 
 
 class IntegrationCapabilitiesResponse(BaseModel):
-    source_service: str = Field("reporting-aggregation-service", alias="sourceService")
+    source_service: str = Field("lotus-report", alias="sourceService")
     contract_version: str = Field(..., alias="contractVersion")
     policy_version: str = Field("ras-default-v1", alias="policyVersion")
     features: list[dict[str, str | bool]]
@@ -57,3 +57,4 @@ class IntegrationCapabilitiesResponse(BaseModel):
     supported_input_modes: list[str] = Field(alias="supportedInputModes")
 
     model_config = {"populate_by_name": True}
+

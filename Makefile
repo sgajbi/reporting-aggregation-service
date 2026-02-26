@@ -55,7 +55,8 @@ ci: lint typecheck openapi-gate migration-smoke test-integration test-e2e test-c
 ci-local: ci
 
 docker-build:
-	docker build -t reporting-aggregation-service:ci-test .
+	docker build -t lotus-report:ci-test .
 
 clean:
 	python -c "import shutil, pathlib; [shutil.rmtree(p, ignore_errors=True) for p in ['.pytest_cache', '.ruff_cache', '.mypy_cache']]; [pathlib.Path(p).unlink(missing_ok=True) for p in ['.coverage', '.coverage.unit', '.coverage.integration', '.coverage.e2e']]"
+

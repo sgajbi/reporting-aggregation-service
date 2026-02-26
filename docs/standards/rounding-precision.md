@@ -1,6 +1,6 @@
 # Rounding and Precision Standard
 
-This repository adopts the platform-wide mandatory standard defined in `pbwm-platform-docs/Financial Rounding and Precision Standard.md` and RFC-0063.
+This repository adopts the platform-wide mandatory standard defined in `lotus-platform/Financial Rounding and Precision Standard.md` and RFC-0063.
 
 ## Local Enforcement
 
@@ -34,6 +34,7 @@ This repository adopts the platform-wide mandatory standard defined in `pbwm-pla
 ## Cross-Service Regression Link
 
 - Shared golden fixture: `tests/fixtures/rounding-golden-vectors.json`.
-- Platform check: `pbwm-platform-docs/automation/Validate-Rounding-Consistency.ps1`.
+- Platform check: `lotus-platform/automation/Validate-Rounding-Consistency.ps1`.
 - Evidence artifact: `Rounding Consistency Report`.
+
 

@@ -1,6 +1,6 @@
 # Enterprise Readiness Baseline (RAS)
 
-- Standard reference: `pbwm-platform-docs/Enterprise Readiness Standard.md`
+- Standard reference: `lotus-platform/Enterprise Readiness Standard.md`
 - Scope: reporting/aggregation read and export APIs consuming PAS/PA sources.
 - Change control: RFC for standard changes, ADR for temporary deviations.
 
@@ -61,3 +61,4 @@ Evidence:
 ## Deviations
 
 - Deviations require ADR with mitigation and expiry review date.
+

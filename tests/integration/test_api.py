@@ -86,7 +86,7 @@ def test_integration_capabilities():
     response = client.get("/integration/capabilities?consumerSystem=BFF&tenantId=default")
     assert response.status_code == 200
     body = response.json()
-    assert body["sourceService"] == "reporting-aggregation-service"
+    assert body["sourceService"] == "lotus-report"
     assert body["contractVersion"] == "v1"
     assert body["policyVersion"] == "ras-default-v1"
     assert body["supportedInputModes"] == ["pas_ref"]
@@ -262,3 +262,4 @@ def test_ras_portfolio_summary_rejects_invalid_section_limit():
     app.dependency_overrides.pop(get_reporting_read_service, None)
 
     assert response.status_code == 422
+

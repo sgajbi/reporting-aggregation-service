@@ -1,0 +1,484 @@
+Lint Typecheck Security	Set up job	﻿2026-02-26T08:32:09.0116208Z Current runner version: '2.331.0'
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0141654Z ##[group]Runner Image Provisioner
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0142466Z Hosted Compute Agent
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0143138Z Version: 20260213.493
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0143762Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0144439Z Build Date: 2026-02-13T00:28:41Z
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0145172Z Worker ID: {b1400e16-73fd-4f46-9d56-c1329cc4caea}
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0145882Z Azure Region: westus
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0146387Z ##[endgroup]
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0148255Z ##[group]Operating System
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0149100Z Ubuntu
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0149583Z 24.04.3
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0150086Z LTS
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0150573Z ##[endgroup]
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0151038Z ##[group]Runner Image
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0151692Z Image: ubuntu-24.04
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0152259Z Version: 20260224.36.1
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0153253Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260224.36/images/ubuntu/Ubuntu2404-Readme.md
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0154974Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260224.36
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0155882Z ##[endgroup]
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0157044Z ##[group]GITHUB_TOKEN Permissions
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0159342Z Contents: read
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0159866Z Metadata: read
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0160495Z ##[endgroup]
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0162647Z Secret source: Actions
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0163436Z Prepare workflow directory
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0565732Z Prepare all required actions
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.0604897Z Getting action download info
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.5017423Z Download action repository 'actions/checkout@v6' (SHA:de0fac2e4500dabe0009e67214ff5f5447ce83dd)
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.6450113Z Download action repository 'actions/setup-python@v6' (SHA:a309ff8b426b58ec0e2a45f0f869d46889d02405)
+Lint Typecheck Security	Set up job	2026-02-26T08:32:09.8198082Z Complete job name: Lint Typecheck Security
+Lint Typecheck Security	Run actions/checkout@v6	﻿2026-02-26T08:32:09.8928934Z ##[group]Run actions/checkout@v6
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8929841Z with:
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8930258Z   repository: sgajbi/lotus-report
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8930961Z   token: ***
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8931344Z   ssh-strict: true
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8931728Z   ssh-user: git
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8932130Z   persist-credentials: true
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8932565Z   clean: true
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8932966Z   sparse-checkout-cone-mode: true
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8933438Z   fetch-depth: 1
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8933832Z   fetch-tags: false
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8934248Z   show-progress: true
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8934657Z   lfs: false
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8935034Z   submodules: false
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8935439Z   set-safe-directory: true
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8936073Z env:
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8936478Z   PIP_DISABLE_PIP_VERSION_CHECK: 1
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8936983Z   PYTHONUNBUFFERED: 1
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8937401Z   PYTHON_VERSION: 3.12
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.8937809Z ##[endgroup]
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.9903329Z Syncing repository: sgajbi/lotus-report
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.9906017Z ##[group]Getting Git version info
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.9907143Z Working directory is '/home/runner/work/lotus-report/lotus-report'
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.9908766Z [command]/usr/bin/git version
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:09.9999744Z git version 2.53.0
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0024219Z ##[endgroup]
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0041248Z Temporarily overriding HOME='/home/runner/work/_temp/161219d4-be88-4c8b-b42f-08f3ea3ab68c' before making global git config changes
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0043577Z Adding repository directory to the temporary git global config as a safe directory
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0047677Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/lotus-report/lotus-report
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0092864Z Deleting the contents of '/home/runner/work/lotus-report/lotus-report'
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0096910Z ##[group]Initializing the repository
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0102222Z [command]/usr/bin/git init /home/runner/work/lotus-report/lotus-report
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0235210Z hint: Using 'master' as the name for the initial branch. This default branch name
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0237259Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0238228Z hint: to use in all of your new repositories, which will suppress this warning,
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0239318Z hint: call:
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0239954Z hint:
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0240739Z hint: 	git config --global init.defaultBranch <name>
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0241380Z hint:
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0241971Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0242960Z hint: 'development'. The just-created branch can be renamed via this command:
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0243742Z hint:
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0244142Z hint: 	git branch -m <name>
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0244640Z hint:
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0245278Z hint: Disable this message with "git config set advice.defaultBranchName false"
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0246630Z Initialized empty Git repository in /home/runner/work/lotus-report/lotus-report/.git/
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0252175Z [command]/usr/bin/git remote add origin https://github.com/sgajbi/lotus-report
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0289635Z ##[endgroup]
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0290840Z ##[group]Disabling automatic garbage collection
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0294610Z [command]/usr/bin/git config --local gc.auto 0
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0325233Z ##[endgroup]
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0326448Z ##[group]Setting up auth
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0327339Z Removing SSH command configuration
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0333546Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0366806Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0729784Z Removing HTTP extra header
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0735934Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.0771841Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.1024359Z Removing includeIf entries pointing to credentials config files
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.1033649Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.1072075Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.1342449Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-d0c829c0-b78d-48d3-aee8-a10563b2a15c.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.1383566Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/lotus-report/lotus-report/.git.path /home/runner/work/_temp/git-credentials-d0c829c0-b78d-48d3-aee8-a10563b2a15c.config
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.1415707Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/lotus-report/lotus-report/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-d0c829c0-b78d-48d3-aee8-a10563b2a15c.config
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.1447913Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-d0c829c0-b78d-48d3-aee8-a10563b2a15c.config
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.1477760Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-d0c829c0-b78d-48d3-aee8-a10563b2a15c.config
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.1505472Z ##[endgroup]
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.1506550Z ##[group]Fetching the repository
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.1515289Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +50cdda4f8690db4107abeb6a90004c89a4d095f5:refs/remotes/pull/29/merge
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6770400Z From https://github.com/sgajbi/lotus-report
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6772205Z  * [new ref]         50cdda4f8690db4107abeb6a90004c89a4d095f5 -> pull/29/merge
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6811006Z ##[endgroup]
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6812744Z ##[group]Determining the checkout info
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6814442Z ##[endgroup]
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6821149Z [command]/usr/bin/git sparse-checkout disable
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6867935Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6901665Z ##[group]Checking out the ref
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6906575Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/29/merge
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6987982Z Note: switching to 'refs/remotes/pull/29/merge'.
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6989839Z 
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6991091Z You are in 'detached HEAD' state. You can look around, make experimental
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6994127Z changes and commit them, and you can discard any commits you make in this
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6996496Z state without impacting any branches by switching back to a branch.
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6997789Z 
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.6998913Z If you want to create a new branch to retain commits you create, you may
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.7000934Z do so (now or later) by using -c with the switch command. Example:
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.7002122Z 
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.7002606Z   git switch -c <new-branch-name>
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.7003467Z 
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.7003784Z Or undo this operation with:
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.7004283Z 
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.7004519Z   git switch -
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.7004876Z 
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.7005476Z Turn off this advice by setting config variable advice.detachedHead to false
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.7006581Z 
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.7007714Z HEAD is now at 50cdda4 Merge f511fa1f5f6580a7c3eb359cc118794ebd8dec85 into ccdde06c7f5ce621fe87072bb1855115f12dd2b1
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.7010944Z ##[endgroup]
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.7036142Z [command]/usr/bin/git log -1 --format=%H
+Lint Typecheck Security	Run actions/checkout@v6	2026-02-26T08:32:10.7062173Z 50cdda4f8690db4107abeb6a90004c89a4d095f5
+Lint Typecheck Security	Run actions/setup-python@v6	﻿2026-02-26T08:32:10.7379990Z ##[group]Run actions/setup-python@v6
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.7381076Z with:
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.7381775Z   python-version: 3.12
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.7382594Z   cache: pip
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.7383312Z   check-latest: false
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.7384374Z   token: ***
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.7385113Z   update-environment: true
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.7386044Z   allow-prereleases: false
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.7386908Z   freethreaded: false
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.7387938Z env:
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.7388773Z   PIP_DISABLE_PIP_VERSION_CHECK: 1
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.7389752Z   PYTHONUNBUFFERED: 1
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.7390549Z   PYTHON_VERSION: 3.12
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.7391319Z ##[endgroup]
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.8692789Z ##[group]Installed versions
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.8794288Z Successfully set up CPython (3.12.12)
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.8796914Z ##[endgroup]
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:10.9854997Z [command]/opt/hostedtoolcache/Python/3.12.12/x64/bin/pip cache dir
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:12.9867122Z /home/runner/.cache/pip
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:13.2924753Z Cache hit for restore-key: setup-python-Linux-x64-24.04-Ubuntu-python-3.12.12-pip-0a1735227c2d460453726505bf80934ed629946632d0a380ffc24b4539c605ce
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:14.6470332Z Received 0 of 54120532 (0.0%), 0.0 MBs/sec
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:15.0902524Z Received 54120532 of 54120532 (100.0%), 35.7 MBs/sec
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:15.0903515Z Cache Size: ~52 MB (54120532 B)
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:15.1022777Z [command]/usr/bin/tar -xf /home/runner/work/_temp/2a1d7b05-80aa-43b3-86cb-6acd95f61653/cache.tzst -P -C /home/runner/work/lotus-report/lotus-report --use-compress-program unzstd
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:15.2174275Z Cache restored successfully
+Lint Typecheck Security	Run actions/setup-python@v6	2026-02-26T08:32:15.2291522Z Cache restored from key: setup-python-Linux-x64-24.04-Ubuntu-python-3.12.12-pip-0a1735227c2d460453726505bf80934ed629946632d0a380ffc24b4539c605ce
+Lint Typecheck Security	Install	﻿2026-02-26T08:32:15.2526530Z ##[group]Run make install
+Lint Typecheck Security	Install	2026-02-26T08:32:15.2526902Z [36;1mmake install[0m
+Lint Typecheck Security	Install	2026-02-26T08:32:15.2584428Z shell: /usr/bin/bash -e {0}
+Lint Typecheck Security	Install	2026-02-26T08:32:15.2584752Z env:
+Lint Typecheck Security	Install	2026-02-26T08:32:15.2584946Z   PIP_DISABLE_PIP_VERSION_CHECK: 1
+Lint Typecheck Security	Install	2026-02-26T08:32:15.2585197Z   PYTHONUNBUFFERED: 1
+Lint Typecheck Security	Install	2026-02-26T08:32:15.2585408Z   PYTHON_VERSION: 3.12
+Lint Typecheck Security	Install	2026-02-26T08:32:15.2585979Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+Lint Typecheck Security	Install	2026-02-26T08:32:15.2586414Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+Lint Typecheck Security	Install	2026-02-26T08:32:15.2586831Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+Lint Typecheck Security	Install	2026-02-26T08:32:15.2587205Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+Lint Typecheck Security	Install	2026-02-26T08:32:15.2587574Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+Lint Typecheck Security	Install	2026-02-26T08:32:15.2587937Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+Lint Typecheck Security	Install	2026-02-26T08:32:15.2588241Z ##[endgroup]
+Lint Typecheck Security	Install	2026-02-26T08:32:15.2711094Z python -m pip install --upgrade pip
+Lint Typecheck Security	Install	2026-02-26T08:32:16.3795172Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (26.0.1)
+Lint Typecheck Security	Install	2026-02-26T08:32:16.5451826Z python -m pip install -e ".[dev]"
+Lint Typecheck Security	Install	2026-02-26T08:32:16.8965022Z Obtaining file:///home/runner/work/lotus-report/lotus-report
+Lint Typecheck Security	Install	2026-02-26T08:32:16.8983579Z   Installing build dependencies: started
+Lint Typecheck Security	Install	2026-02-26T08:32:17.5669132Z   Installing build dependencies: finished with status 'done'
+Lint Typecheck Security	Install	2026-02-26T08:32:17.5674744Z   Checking if build backend supports build_editable: started
+Lint Typecheck Security	Install	2026-02-26T08:32:17.9920718Z   Checking if build backend supports build_editable: finished with status 'done'
+Lint Typecheck Security	Install	2026-02-26T08:32:17.9931807Z   Getting requirements to build editable: started
+Lint Typecheck Security	Install	2026-02-26T08:32:18.3418089Z   Getting requirements to build editable: finished with status 'done'
+Lint Typecheck Security	Install	2026-02-26T08:32:18.3427967Z   Preparing editable metadata (pyproject.toml): started
+Lint Typecheck Security	Install	2026-02-26T08:32:18.5364021Z   Preparing editable metadata (pyproject.toml): finished with status 'done'
+Lint Typecheck Security	Install	2026-02-26T08:32:18.6506461Z Collecting fastapi>=0.116.1 (from lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.7066677Z   Downloading fastapi-0.133.1-py3-none-any.whl.metadata (30 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.7376177Z Collecting uvicorn>=0.35.0 (from uvicorn[standard]>=0.35.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.7390191Z   Using cached uvicorn-0.41.0-py3-none-any.whl.metadata (6.7 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.8506330Z Collecting pydantic>=2.11.7 (from lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.8520202Z   Using cached pydantic-2.12.5-py3-none-any.whl.metadata (90 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.8667626Z Collecting pydantic-settings>=2.10.0 (from lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.8679916Z   Using cached pydantic_settings-2.13.1-py3-none-any.whl.metadata (3.4 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.8822609Z Collecting httpx>=0.28.1 (from lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.8834512Z   Using cached httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.9002900Z Collecting prometheus-fastapi-instrumentator>=7.1.0 (from lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.9020454Z   Using cached prometheus_fastapi_instrumentator-7.1.0-py3-none-any.whl.metadata (13 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.9255143Z Collecting pytest>=8.4.1 (from lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.9267816Z   Using cached pytest-9.0.2-py3-none-any.whl.metadata (7.6 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.9418295Z Collecting pytest-asyncio>=0.23.8 (from lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:18.9430413Z   Using cached pytest_asyncio-1.3.0-py3-none-any.whl.metadata (4.1 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.2476007Z Collecting ruff>=0.12.10 (from lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.2491098Z   Using cached ruff-0.15.2-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (26 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.3335912Z Collecting mypy>=1.19.1 (from lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.3350235Z   Using cached mypy-1.19.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.2 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.3482416Z Collecting pytest-cov>=6.2.1 (from lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.3494526Z   Using cached pytest_cov-7.0.0-py3-none-any.whl.metadata (31 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.7130558Z Collecting coverage>=7.10.6 (from lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.7145185Z   Using cached coverage-7.13.4-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (8.5 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.7380987Z Collecting pre-commit>=4.3.0 (from lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.7393726Z   Using cached pre_commit-4.5.1-py2.py3-none-any.whl.metadata (1.2 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.7527340Z Collecting pip-audit>=2.9.0 (from lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.7539487Z   Using cached pip_audit-2.10.0-py3-none-any.whl.metadata (28 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.7757805Z Collecting starlette>=0.40.0 (from fastapi>=0.116.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.7770547Z   Using cached starlette-0.52.1-py3-none-any.whl.metadata (6.3 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.7914535Z Collecting typing-extensions>=4.8.0 (from fastapi>=0.116.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.7926963Z   Using cached typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.7995518Z Collecting typing-inspection>=0.4.2 (from fastapi>=0.116.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8007653Z   Using cached typing_inspection-0.4.2-py3-none-any.whl.metadata (2.6 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8072839Z Collecting annotated-doc>=0.0.2 (from fastapi>=0.116.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8084789Z   Using cached annotated_doc-0.0.4-py3-none-any.whl.metadata (6.6 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8247757Z Collecting anyio (from httpx>=0.28.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8260426Z   Using cached anyio-4.12.1-py3-none-any.whl.metadata (4.3 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8412756Z Collecting certifi (from httpx>=0.28.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8424872Z   Using cached certifi-2026.2.25-py3-none-any.whl.metadata (2.5 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8557684Z Collecting httpcore==1.* (from httpx>=0.28.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8569817Z   Using cached httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8679179Z Collecting idna (from httpx>=0.28.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8691156Z   Using cached idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8789923Z Collecting h11>=0.16 (from httpcore==1.*->httpx>=0.28.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8802665Z   Using cached h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8903937Z Collecting mypy_extensions>=1.0.0 (from mypy>=1.19.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.8915986Z   Using cached mypy_extensions-1.1.0-py3-none-any.whl.metadata (1.1 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.9003558Z Collecting pathspec>=0.9.0 (from mypy>=1.19.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.9015507Z   Using cached pathspec-1.0.4-py3-none-any.whl.metadata (13 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.9895743Z Collecting librt>=0.6.2 (from mypy>=1.19.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:19.9910618Z   Using cached librt-0.8.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (1.3 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.0029990Z Collecting CacheControl>=0.13.0 (from CacheControl[filecache]>=0.13.0->pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.0042025Z   Using cached cachecontrol-0.14.4-py3-none-any.whl.metadata (3.1 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.0317190Z Collecting cyclonedx-python-lib<12,>=5 (from pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.0330777Z   Using cached cyclonedx_python_lib-11.6.0-py3-none-any.whl.metadata (6.8 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.0457496Z Collecting packaging>=23.0.0 (from pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.0470862Z   Using cached packaging-26.0-py3-none-any.whl.metadata (3.3 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.0623568Z Collecting pip-api>=0.0.28 (from pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.0639570Z   Using cached pip_api-0.0.34-py3-none-any.whl.metadata (6.6 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.0721780Z Collecting pip-requirements-parser>=32.0.0 (from pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.0734864Z   Using cached pip_requirements_parser-32.0.1-py3-none-any.whl.metadata (9.3 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.0913283Z Collecting requests>=2.31.0 (from pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.0926268Z   Using cached requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.1192943Z Collecting rich>=12.4 (from pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.1208369Z   Using cached rich-14.3.3-py3-none-any.whl.metadata (18 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.1380122Z Collecting tomli>=2.2.1 (from pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.1394030Z   Using cached tomli-2.4.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (10 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.1474743Z Collecting tomli-w>=1.2.0 (from pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.1487559Z   Using cached tomli_w-1.2.0-py3-none-any.whl.metadata (5.7 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.1618953Z Collecting platformdirs>=4.2.0 (from pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.1631601Z   Using cached platformdirs-4.9.2-py3-none-any.whl.metadata (4.7 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.1747670Z Collecting license-expression<31,>=30 (from cyclonedx-python-lib<12,>=5->pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.1759031Z   Using cached license_expression-30.4.4-py3-none-any.whl.metadata (11 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.1901957Z Collecting packageurl-python<2,>=0.11 (from cyclonedx-python-lib<12,>=5->pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.1913426Z   Using cached packageurl_python-0.17.6-py3-none-any.whl.metadata (5.1 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.2036206Z Collecting py-serializable<3.0.0,>=2.1.0 (from cyclonedx-python-lib<12,>=5->pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.2047361Z   Using cached py_serializable-2.1.0-py3-none-any.whl.metadata (4.3 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.2135713Z Collecting sortedcontainers<3.0.0,>=2.4.0 (from cyclonedx-python-lib<12,>=5->pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.2146419Z   Using cached sortedcontainers-2.4.0-py2.py3-none-any.whl.metadata (10 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.2255391Z Collecting boolean.py>=4.0 (from license-expression<31,>=30->cyclonedx-python-lib<12,>=5->pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.2266387Z   Using cached boolean_py-5.0-py3-none-any.whl.metadata (2.3 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.2391052Z Collecting defusedxml<0.8.0,>=0.7.1 (from py-serializable<3.0.0,>=2.1.0->cyclonedx-python-lib<12,>=5->pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.2401903Z   Using cached defusedxml-0.7.1-py2.py3-none-any.whl.metadata (32 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.3422676Z Collecting msgpack<2.0.0,>=0.5.2 (from CacheControl>=0.13.0->CacheControl[filecache]>=0.13.0->pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.3436215Z   Using cached msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (8.1 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.3616532Z Collecting filelock>=3.8.0 (from CacheControl[filecache]>=0.13.0->pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.3628164Z   Using cached filelock-3.24.3-py3-none-any.whl.metadata (2.0 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.3661140Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from pip-api>=0.0.28->pip-audit>=2.9.0->lotus-report==0.1.0) (26.0.1)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.3857116Z Collecting pyparsing (from pip-requirements-parser>=32.0.0->pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.3868748Z   Using cached pyparsing-3.3.2-py3-none-any.whl.metadata (5.8 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.3970764Z Collecting cfgv>=2.0.0 (from pre-commit>=4.3.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.3982325Z   Using cached cfgv-3.5.0-py2.py3-none-any.whl.metadata (8.9 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.4312963Z Collecting identify>=1.0.0 (from pre-commit>=4.3.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.4326680Z   Using cached identify-2.6.16-py2.py3-none-any.whl.metadata (4.4 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.4435536Z Collecting nodeenv>=0.11.1 (from pre-commit>=4.3.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.4447639Z   Using cached nodeenv-1.10.0-py2.py3-none-any.whl.metadata (24 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.4775027Z Collecting pyyaml>=5.1 (from pre-commit>=4.3.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.4793942Z   Using cached pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.5171458Z Collecting virtualenv>=20.10.0 (from pre-commit>=4.3.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.5202246Z   Downloading virtualenv-21.0.0-py3-none-any.whl.metadata (3.5 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.5371719Z Collecting prometheus-client<1.0.0,>=0.8.0 (from prometheus-fastapi-instrumentator>=7.1.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.5383640Z   Using cached prometheus_client-0.24.1-py3-none-any.whl.metadata (2.1 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.5580931Z Collecting annotated-types>=0.6.0 (from pydantic>=2.11.7->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:20.5592889Z   Using cached annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.2106949Z Collecting pydantic-core==2.41.5 (from pydantic>=2.11.7->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.2121333Z   Using cached pydantic_core-2.41.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.3 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.2277393Z Collecting python-dotenv>=0.21.0 (from pydantic-settings>=2.10.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.2289077Z   Using cached python_dotenv-1.2.1-py3-none-any.whl.metadata (25 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.2388424Z Collecting iniconfig>=1.0.1 (from pytest>=8.4.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.2400550Z   Using cached iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.2494916Z Collecting pluggy<2,>=1.5 (from pytest>=8.4.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.2506153Z   Using cached pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.2649047Z Collecting pygments>=2.7.2 (from pytest>=8.4.1->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.2660487Z   Using cached pygments-2.19.2-py3-none-any.whl.metadata (2.5 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.3477433Z Collecting charset_normalizer<4,>=2 (from requests>=2.31.0->pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.3492379Z   Using cached charset_normalizer-3.4.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (37 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.3715071Z Collecting urllib3<3,>=1.21.1 (from requests>=2.31.0->pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.3734421Z   Using cached urllib3-2.6.3-py3-none-any.whl.metadata (6.9 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.3910695Z Collecting markdown-it-py>=2.2.0 (from rich>=12.4->pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.3928916Z   Using cached markdown_it_py-4.0.0-py3-none-any.whl.metadata (7.3 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.4107913Z Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=12.4->pip-audit>=2.9.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.4119690Z   Using cached mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.4290999Z Collecting click>=7.0 (from uvicorn>=0.35.0->uvicorn[standard]>=0.35.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.4302793Z   Using cached click-8.3.1-py3-none-any.whl.metadata (2.6 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.4576039Z Collecting httptools>=0.6.3 (from uvicorn[standard]>=0.35.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.4588121Z   Using cached httptools-0.7.1-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (3.5 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.4918833Z Collecting uvloop>=0.15.1 (from uvicorn[standard]>=0.35.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.4931344Z   Using cached uvloop-0.22.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (4.9 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.5555421Z Collecting watchfiles>=0.20 (from uvicorn[standard]>=0.35.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.5569222Z   Using cached watchfiles-1.1.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.9 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.6319646Z Collecting websockets>=10.4 (from uvicorn[standard]>=0.35.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.6333947Z   Using cached websockets-16.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (6.8 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.6445564Z Collecting distlib<1,>=0.3.7 (from virtualenv>=20.10.0->pre-commit>=4.3.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.6463650Z   Using cached distlib-0.4.0-py2.py3-none-any.whl.metadata (5.2 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.6568961Z Collecting python-discovery>=1 (from virtualenv>=20.10.0->pre-commit>=4.3.0->lotus-report==0.1.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.6597802Z   Downloading python_discovery-1.0.0-py3-none-any.whl.metadata (4.0 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.6758917Z Using cached coverage-7.13.4-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (254 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.6790150Z Downloading fastapi-0.133.1-py3-none-any.whl (109 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.6890661Z Using cached annotated_doc-0.0.4-py3-none-any.whl (5.3 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.6902510Z Using cached httpx-0.28.1-py3-none-any.whl (73 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.6914862Z Using cached httpcore-1.0.9-py3-none-any.whl (78 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.6926912Z Using cached h11-0.16.0-py3-none-any.whl (37 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.6939347Z Using cached mypy-1.19.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (13.6 MB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7054194Z Using cached librt-0.8.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (224 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7068338Z Using cached mypy_extensions-1.1.0-py3-none-any.whl (5.0 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7080841Z Using cached pathspec-1.0.4-py3-none-any.whl (55 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7093318Z Using cached pip_audit-2.10.0-py3-none-any.whl (61 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7105250Z Using cached cyclonedx_python_lib-11.6.0-py3-none-any.whl (511 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7120322Z Using cached license_expression-30.4.4-py3-none-any.whl (120 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7132868Z Using cached packageurl_python-0.17.6-py3-none-any.whl (36 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7144885Z Using cached py_serializable-2.1.0-py3-none-any.whl (23 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7156642Z Using cached defusedxml-0.7.1-py2.py3-none-any.whl (25 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7168289Z Using cached sortedcontainers-2.4.0-py2.py3-none-any.whl (29 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7180274Z Using cached typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7191808Z Using cached boolean_py-5.0-py3-none-any.whl (26 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7203530Z Using cached cachecontrol-0.14.4-py3-none-any.whl (22 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7215631Z Using cached msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (427 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7230033Z Using cached filelock-3.24.3-py3-none-any.whl (24 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7241379Z Using cached packaging-26.0-py3-none-any.whl (74 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7253502Z Using cached pip_api-0.0.34-py3-none-any.whl (120 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7265758Z Using cached pip_requirements_parser-32.0.1-py3-none-any.whl (35 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7277420Z Using cached platformdirs-4.9.2-py3-none-any.whl (21 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7289258Z Using cached pre_commit-4.5.1-py2.py3-none-any.whl (226 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7302299Z Using cached cfgv-3.5.0-py2.py3-none-any.whl (7.4 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7313993Z Using cached identify-2.6.16-py2.py3-none-any.whl (99 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7326119Z Using cached nodeenv-1.10.0-py2.py3-none-any.whl (23 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7337951Z Using cached prometheus_fastapi_instrumentator-7.1.0-py3-none-any.whl (19 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7349873Z Using cached prometheus_client-0.24.1-py3-none-any.whl (64 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7361946Z Using cached starlette-0.52.1-py3-none-any.whl (74 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7373844Z Using cached anyio-4.12.1-py3-none-any.whl (113 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7385726Z Using cached idna-3.11-py3-none-any.whl (71 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7397570Z Using cached pydantic-2.12.5-py3-none-any.whl (463 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7412902Z Using cached pydantic_core-2.41.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7439220Z Using cached annotated_types-0.7.0-py3-none-any.whl (13 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7450909Z Using cached pydantic_settings-2.13.1-py3-none-any.whl (58 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7462742Z Using cached pytest-9.0.2-py3-none-any.whl (374 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7477040Z Using cached pluggy-1.6.0-py3-none-any.whl (20 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7488815Z Using cached iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7500525Z Using cached pygments-2.19.2-py3-none-any.whl (1.2 MB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7520788Z Using cached pytest_asyncio-1.3.0-py3-none-any.whl (15 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7532315Z Using cached pytest_cov-7.0.0-py3-none-any.whl (22 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7543993Z Using cached python_dotenv-1.2.1-py3-none-any.whl (21 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7556114Z Using cached pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (807 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7573270Z Using cached requests-2.32.5-py3-none-any.whl (64 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7585785Z Using cached charset_normalizer-3.4.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (153 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7597917Z Using cached urllib3-2.6.3-py3-none-any.whl (131 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7610653Z Using cached certifi-2026.2.25-py3-none-any.whl (153 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7622955Z Using cached rich-14.3.3-py3-none-any.whl (310 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7636672Z Using cached markdown_it_py-4.0.0-py3-none-any.whl (87 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7648795Z Using cached mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7660715Z Using cached ruff-0.15.2-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (11.1 MB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7753154Z Using cached tomli-2.4.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (251 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7765770Z Using cached tomli_w-1.2.0-py3-none-any.whl (6.7 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7777453Z Using cached typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7789196Z Using cached uvicorn-0.41.0-py3-none-any.whl (68 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7800926Z Using cached click-8.3.1-py3-none-any.whl (108 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7813516Z Using cached httptools-0.7.1-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (517 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7829129Z Using cached uvloop-0.22.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (4.4 MB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.7888788Z Downloading virtualenv-21.0.0-py3-none-any.whl (5.8 MB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.8243541Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.8/5.8 MB 177.7 MB/s  0:00:00
+Lint Typecheck Security	Install	2026-02-26T08:32:21.8257679Z Using cached distlib-0.4.0-py2.py3-none-any.whl (469 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.8292465Z Downloading python_discovery-1.0.0-py3-none-any.whl (28 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.8329726Z Using cached watchfiles-1.1.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (456 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.8344127Z Using cached websockets-16.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (184 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.8356202Z Using cached pyparsing-3.3.2-py3-none-any.whl (122 kB)
+Lint Typecheck Security	Install	2026-02-26T08:32:21.9249932Z Building wheels for collected packages: lotus-report
+Lint Typecheck Security	Install	2026-02-26T08:32:21.9258138Z   Building editable for lotus-report (pyproject.toml): started
+Lint Typecheck Security	Install	2026-02-26T08:32:22.1541905Z   Building editable for lotus-report (pyproject.toml): finished with status 'done'
+Lint Typecheck Security	Install	2026-02-26T08:32:22.1548956Z   Created wheel for lotus-report: filename=lotus_report-0.1.0-0.editable-py3-none-any.whl size=1497 sha256=3299345140f4bd336037ad444199f938e0a050e197ef72f1b80ad000732b7e66
+Lint Typecheck Security	Install	2026-02-26T08:32:22.1551003Z   Stored in directory: /tmp/pip-ephem-wheel-cache-yiwdk7mp/wheels/6e/ec/70/22ce4e9907bf9a6206cc12c26533e7fb608a1dc5b56c720477
+Lint Typecheck Security	Install	2026-02-26T08:32:22.1566662Z Successfully built lotus-report
+Lint Typecheck Security	Install	2026-02-26T08:32:22.2643961Z Installing collected packages: sortedcontainers, distlib, boolean.py, websockets, uvloop, urllib3, typing-extensions, tomli-w, tomli, ruff, pyyaml, python-dotenv, pyparsing, pygments, prometheus-client, pluggy, platformdirs, pip-api, pathspec, packaging, packageurl-python, nodeenv, mypy_extensions, msgpack, mdurl, license-expression, librt, iniconfig, idna, identify, httptools, h11, filelock, defusedxml, coverage, click, charset_normalizer, cfgv, certifi, annotated-types, annotated-doc, uvicorn, typing-inspection, requests, python-discovery, pytest, pydantic-core, py-serializable, pip-requirements-parser, mypy, markdown-it-py, httpcore, anyio, watchfiles, virtualenv, starlette, rich, pytest-cov, pytest-asyncio, pydantic, httpx, cyclonedx-python-lib, CacheControl, pydantic-settings, prometheus-fastapi-instrumentator, pre-commit, fastapi, pip-audit, lotus-report
+Lint Typecheck Security	Install	2026-02-26T08:32:28.0975789Z 
+Lint Typecheck Security	Install	2026-02-26T08:32:28.1036928Z Successfully installed CacheControl-0.14.4 annotated-doc-0.0.4 annotated-types-0.7.0 anyio-4.12.1 boolean.py-5.0 certifi-2026.2.25 cfgv-3.5.0 charset_normalizer-3.4.4 click-8.3.1 coverage-7.13.4 cyclonedx-python-lib-11.6.0 defusedxml-0.7.1 distlib-0.4.0 fastapi-0.133.1 filelock-3.24.3 h11-0.16.0 httpcore-1.0.9 httptools-0.7.1 httpx-0.28.1 identify-2.6.16 idna-3.11 iniconfig-2.3.0 librt-0.8.1 license-expression-30.4.4 lotus-report-0.1.0 markdown-it-py-4.0.0 mdurl-0.1.2 msgpack-1.1.2 mypy-1.19.1 mypy_extensions-1.1.0 nodeenv-1.10.0 packageurl-python-0.17.6 packaging-26.0 pathspec-1.0.4 pip-api-0.0.34 pip-audit-2.10.0 pip-requirements-parser-32.0.1 platformdirs-4.9.2 pluggy-1.6.0 pre-commit-4.5.1 prometheus-client-0.24.1 prometheus-fastapi-instrumentator-7.1.0 py-serializable-2.1.0 pydantic-2.12.5 pydantic-core-2.41.5 pydantic-settings-2.13.1 pygments-2.19.2 pyparsing-3.3.2 pytest-9.0.2 pytest-asyncio-1.3.0 pytest-cov-7.0.0 python-discovery-1.0.0 python-dotenv-1.2.1 pyyaml-6.0.3 requests-2.32.5 rich-14.3.3 ruff-0.15.2 sortedcontainers-2.4.0 starlette-0.52.1 tomli-2.4.0 tomli-w-1.2.0 typing-extensions-4.15.0 typing-inspection-0.4.2 urllib3-2.6.3 uvicorn-0.41.0 uvloop-0.22.1 virtualenv-21.0.0 watchfiles-1.1.1 websockets-16.0
+Lint Typecheck Security	Install	2026-02-26T08:32:28.6574209Z python -m pip install pre-commit
+Lint Typecheck Security	Install	2026-02-26T08:32:29.0143057Z Requirement already satisfied: pre-commit in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (4.5.1)
+Lint Typecheck Security	Install	2026-02-26T08:32:29.0154254Z Requirement already satisfied: cfgv>=2.0.0 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from pre-commit) (3.5.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:29.0161022Z Requirement already satisfied: identify>=1.0.0 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from pre-commit) (2.6.16)
+Lint Typecheck Security	Install	2026-02-26T08:32:29.0167095Z Requirement already satisfied: nodeenv>=0.11.1 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from pre-commit) (1.10.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:29.0172938Z Requirement already satisfied: pyyaml>=5.1 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from pre-commit) (6.0.3)
+Lint Typecheck Security	Install	2026-02-26T08:32:29.0178451Z Requirement already satisfied: virtualenv>=20.10.0 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from pre-commit) (21.0.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:29.0213862Z Requirement already satisfied: distlib<1,>=0.3.7 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from virtualenv>=20.10.0->pre-commit) (0.4.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:29.0223058Z Requirement already satisfied: filelock<4,>=3.24.2 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from virtualenv>=20.10.0->pre-commit) (3.24.3)
+Lint Typecheck Security	Install	2026-02-26T08:32:29.0231093Z Requirement already satisfied: platformdirs<5,>=3.9.1 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from virtualenv>=20.10.0->pre-commit) (4.9.2)
+Lint Typecheck Security	Install	2026-02-26T08:32:29.0236412Z Requirement already satisfied: python-discovery>=1 in /opt/hostedtoolcache/Python/3.12.12/x64/lib/python3.12/site-packages (from virtualenv>=20.10.0->pre-commit) (1.0.0)
+Lint Typecheck Security	Install	2026-02-26T08:32:29.1234208Z pre-commit install
+Lint Typecheck Security	Install	2026-02-26T08:32:29.4748995Z pre-commit installed at .git/hooks/pre-commit
+Lint Typecheck Security	Verify Dependencies	﻿2026-02-26T08:32:29.4974464Z ##[group]Run python -m pip check
+Lint Typecheck Security	Verify Dependencies	2026-02-26T08:32:29.4974795Z [36;1mpython -m pip check[0m
+Lint Typecheck Security	Verify Dependencies	2026-02-26T08:32:29.5026721Z shell: /usr/bin/bash -e {0}
+Lint Typecheck Security	Verify Dependencies	2026-02-26T08:32:29.5026959Z env:
+Lint Typecheck Security	Verify Dependencies	2026-02-26T08:32:29.5027152Z   PIP_DISABLE_PIP_VERSION_CHECK: 1
+Lint Typecheck Security	Verify Dependencies	2026-02-26T08:32:29.5027428Z   PYTHONUNBUFFERED: 1
+Lint Typecheck Security	Verify Dependencies	2026-02-26T08:32:29.5027674Z   PYTHON_VERSION: 3.12
+Lint Typecheck Security	Verify Dependencies	2026-02-26T08:32:29.5027961Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+Lint Typecheck Security	Verify Dependencies	2026-02-26T08:32:29.5028826Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+Lint Typecheck Security	Verify Dependencies	2026-02-26T08:32:29.5029297Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+Lint Typecheck Security	Verify Dependencies	2026-02-26T08:32:29.5029696Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+Lint Typecheck Security	Verify Dependencies	2026-02-26T08:32:29.5030106Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+Lint Typecheck Security	Verify Dependencies	2026-02-26T08:32:29.5030515Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+Lint Typecheck Security	Verify Dependencies	2026-02-26T08:32:29.5030852Z ##[endgroup]
+Lint Typecheck Security	Verify Dependencies	2026-02-26T08:32:29.7995709Z No broken requirements found.
+Lint Typecheck Security	Lint	﻿2026-02-26T08:32:29.8529604Z ##[group]Run make lint
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8529885Z [36;1mmake lint[0m
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8580435Z shell: /usr/bin/bash -e {0}
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8580668Z env:
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8580852Z   PIP_DISABLE_PIP_VERSION_CHECK: 1
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8581103Z   PYTHONUNBUFFERED: 1
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8581304Z   PYTHON_VERSION: 3.12
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8581571Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8581989Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8582426Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8582781Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8583140Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8583501Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8583798Z ##[endgroup]
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8667546Z ruff check .
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8773059Z All checks passed!
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8782875Z ruff format --check .
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8887625Z Would reformat: src/app/main.py
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8888230Z Would reformat: src/app/routers/aggregations.py
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8888960Z Would reformat: src/app/routers/integration.py
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8889461Z Would reformat: src/app/routers/reports.py
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8890013Z Would reformat: src/app/services/aggregation_service.py
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8890638Z Would reformat: src/app/services/reporting_read_service.py
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8891282Z 6 files would be reformatted, 33 files already formatted
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8900784Z make: *** [Makefile:11: lint] Error 1
+Lint Typecheck Security	Lint	2026-02-26T08:32:29.8917338Z ##[error]Process completed with exit code 2.
+Lint Typecheck Security	Post Run actions/checkout@v6	﻿2026-02-26T08:32:29.9041176Z Post job cleanup.
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:29.9845949Z [command]/usr/bin/git version
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:29.9883960Z git version 2.53.0
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:29.9923076Z Temporarily overriding HOME='/home/runner/work/_temp/57a7a816-c663-4380-88de-5c6790756053' before making global git config changes
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:29.9924456Z Adding repository directory to the temporary git global config as a safe directory
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:29.9929187Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/lotus-report/lotus-report
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:29.9959485Z Removing SSH command configuration
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:29.9966045Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0002733Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0276966Z Removing HTTP extra header
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0282656Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0317757Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0559466Z Removing includeIf entries pointing to credentials config files
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0567487Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0596246Z includeif.gitdir:/home/runner/work/lotus-report/lotus-report/.git.path
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0597952Z includeif.gitdir:/home/runner/work/lotus-report/lotus-report/.git/worktrees/*.path
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0600392Z includeif.gitdir:/github/workspace/.git.path
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0602491Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0610038Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/lotus-report/lotus-report/.git.path
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0636025Z /home/runner/work/_temp/git-credentials-d0c829c0-b78d-48d3-aee8-a10563b2a15c.config
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0650463Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/lotus-report/lotus-report/.git.path /home/runner/work/_temp/git-credentials-d0c829c0-b78d-48d3-aee8-a10563b2a15c.config
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0691836Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/lotus-report/lotus-report/.git/worktrees/*.path
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0718167Z /home/runner/work/_temp/git-credentials-d0c829c0-b78d-48d3-aee8-a10563b2a15c.config
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0752278Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/lotus-report/lotus-report/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-d0c829c0-b78d-48d3-aee8-a10563b2a15c.config
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0773760Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0798997Z /github/runner_temp/git-credentials-d0c829c0-b78d-48d3-aee8-a10563b2a15c.config
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0807928Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-d0c829c0-b78d-48d3-aee8-a10563b2a15c.config
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0844236Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0869588Z /github/runner_temp/git-credentials-d0c829c0-b78d-48d3-aee8-a10563b2a15c.config
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0879053Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-d0c829c0-b78d-48d3-aee8-a10563b2a15c.config
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.0917266Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Lint Typecheck Security	Post Run actions/checkout@v6	2026-02-26T08:32:30.1175476Z Removing credentials config '/home/runner/work/_temp/git-credentials-d0c829c0-b78d-48d3-aee8-a10563b2a15c.config'
+Lint Typecheck Security	Complete job	﻿2026-02-26T08:32:30.1314129Z Cleaning up orphan processes

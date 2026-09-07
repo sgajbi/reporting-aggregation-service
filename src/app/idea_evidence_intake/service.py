@@ -440,6 +440,7 @@ class IdeaEvidenceIntakeLedger:
             raise IdeaEvidenceIntakeMigrationError(
                 f"carried {carried} of {original} intake row(s); refusing to drop the original"
             )
+        connection.execute("DROP INDEX IF EXISTS idx_idea_evidence_intake_source")
         connection.execute("DROP TABLE idea_evidence_intake_pre_344")
         connection.commit()
 
@@ -449,8 +450,10 @@ class IdeaEvidenceIntakeLedger:
             connection.execute(_TENANT_SCOPED_DDL)
             connection.execute(
                 """
-                CREATE INDEX IF NOT EXISTS idx_idea_evidence_intake_source
-                ON idea_evidence_intake(report_evidence_pack_id, evidence_packet_id)
+                CREATE INDEX IF NOT EXISTS idx_idea_evidence_intake_tenant_source
+                ON idea_evidence_intake(
+                    tenant_id, report_evidence_pack_id, evidence_packet_id
+                )
                 """
             )
             connection.execute(

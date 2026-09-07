@@ -161,6 +161,37 @@ def build_intake_record(
     )
 
 
+class IdeaEvidenceIntakeMigrationError(RuntimeError):
+    """A retained ledger file could not be carried onto the tenant-scoped schema."""
+
+
+#: One definition, used both to create a fresh table and to rebuild an existing
+#: one. Two copies would be free to disagree, and the rebuild's copy is the one
+#: nobody looks at until a deployment with retained data is upgraded.
+_TENANT_SCOPED_DDL = """
+CREATE TABLE IF NOT EXISTS idea_evidence_intake (
+    tenant_id TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL,
+    intake_id TEXT NOT NULL,
+    payload_fingerprint TEXT NOT NULL,
+    response_json TEXT NOT NULL,
+    caller_context_json TEXT NOT NULL,
+    report_evidence_pack_id TEXT NOT NULL,
+    conversion_intent_id TEXT NOT NULL,
+    candidate_id TEXT NOT NULL,
+    evidence_packet_id TEXT NOT NULL,
+    evidence_content_fingerprint TEXT NOT NULL,
+    producer TEXT NOT NULL,
+    supportability_status TEXT NOT NULL,
+    accepted_at_utc TEXT NOT NULL,
+    created_at_utc TEXT NOT NULL,
+    correlation_id TEXT,
+    trace_id TEXT,
+    PRIMARY KEY (tenant_id, idempotency_key)
+)
+"""
+
+
 class IdeaEvidenceIntakeLedger:
     def __init__(self, database_path: Path | str | None = None) -> None:
         self._database_path = Path(database_path) if database_path is not None else None
@@ -331,32 +362,81 @@ class IdeaEvidenceIntakeLedger:
         finally:
             connection.close()
 
+    def _migrate_to_tenant_identity(self, connection: sqlite3.Connection) -> None:
+        """Carry a pre-report#344 ledger file onto the tenant-scoped schema.
+
+        `CREATE TABLE IF NOT EXISTS` below is a no-op against an existing file,
+        so without this an already-deployed SQLite ledger keeps the old table
+        and the first tenant-scoped read fails with
+        `no such column: tenant_id` -- every existing deployment unusable after
+        rollout rather than migrated.
+
+        Mirrors migration 025 for PostgreSQL, including its refusal: a row whose
+        stored caller context holds no tenant is not defaulted and not dropped.
+        SQLite cannot alter a primary key in place, so the table is rebuilt and
+        the rows copied inside the caller's transaction -- an interrupted run
+        leaves the original table untouched.
+        """
+
+        table = connection.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'idea_evidence_intake'"
+        ).fetchone()
+        if table is None:
+            return
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(idea_evidence_intake)")}
+        if "tenant_id" in columns:
+            return
+
+        unattributed = connection.execute(
+            """
+            SELECT idempotency_key FROM idea_evidence_intake
+            WHERE COALESCE(TRIM(json_extract(caller_context_json, '$.tenant_id')), '') = ''
+            """
+        ).fetchall()
+        if unattributed:
+            keys = ", ".join(repr(str(row[0])) for row in unattributed[:5])
+            raise IdeaEvidenceIntakeMigrationError(
+                f"{len(unattributed)} intake row(s) have no tenant in caller_context_json "
+                f"(for example {keys}). Attribute them deliberately before starting with the "
+                "tenant-scoped schema; this migration will not default or discard them "
+                "(report#344)."
+            )
+
+        connection.execute(
+            "ALTER TABLE idea_evidence_intake RENAME TO idea_evidence_intake_pre_344"
+        )
+        connection.execute(_TENANT_SCOPED_DDL)
+        connection.execute(
+            """
+            INSERT INTO idea_evidence_intake (
+                tenant_id, idempotency_key, intake_id, payload_fingerprint, response_json,
+                caller_context_json, report_evidence_pack_id, conversion_intent_id, candidate_id,
+                evidence_packet_id, evidence_content_fingerprint, producer, supportability_status,
+                accepted_at_utc, created_at_utc, correlation_id, trace_id
+            )
+            SELECT
+                TRIM(json_extract(caller_context_json, '$.tenant_id')),
+                idempotency_key, intake_id, payload_fingerprint, response_json,
+                caller_context_json, report_evidence_pack_id, conversion_intent_id, candidate_id,
+                evidence_packet_id, evidence_content_fingerprint, producer, supportability_status,
+                accepted_at_utc, created_at_utc, correlation_id, trace_id
+            FROM idea_evidence_intake_pre_344
+            """
+        )
+        carried = connection.execute("SELECT count(*) FROM idea_evidence_intake").fetchone()[0]
+        original = connection.execute(
+            "SELECT count(*) FROM idea_evidence_intake_pre_344"
+        ).fetchone()[0]
+        if carried != original:
+            raise IdeaEvidenceIntakeMigrationError(
+                f"carried {carried} of {original} intake row(s); refusing to drop the original"
+            )
+        connection.execute("DROP TABLE idea_evidence_intake_pre_344")
+
     def _ensure_schema(self) -> None:
         with self._connect() as connection:
-            connection.execute(
-                """
-                CREATE TABLE IF NOT EXISTS idea_evidence_intake (
-                    tenant_id TEXT NOT NULL,
-                    idempotency_key TEXT NOT NULL,
-                    intake_id TEXT NOT NULL,
-                    payload_fingerprint TEXT NOT NULL,
-                    response_json TEXT NOT NULL,
-                    caller_context_json TEXT NOT NULL,
-                    report_evidence_pack_id TEXT NOT NULL,
-                    conversion_intent_id TEXT NOT NULL,
-                    candidate_id TEXT NOT NULL,
-                    evidence_packet_id TEXT NOT NULL,
-                    evidence_content_fingerprint TEXT NOT NULL,
-                    producer TEXT NOT NULL,
-                    supportability_status TEXT NOT NULL,
-                    accepted_at_utc TEXT NOT NULL,
-                    created_at_utc TEXT NOT NULL,
-                    correlation_id TEXT,
-                    trace_id TEXT,
-                    PRIMARY KEY (tenant_id, idempotency_key)
-                )
-                """
-            )
+            self._migrate_to_tenant_identity(connection)
+            connection.execute(_TENANT_SCOPED_DDL)
             connection.execute(
                 """
                 CREATE INDEX IF NOT EXISTS idx_idea_evidence_intake_source

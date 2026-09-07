@@ -412,7 +412,7 @@ def test_stored_definitions_fold_into_the_scheduler_pass_itself() -> None:
 
     class _Portfolios:
         async def get_portfolio_detail(self, portfolio_id, correlation_id=None):
-            return 200, {"portfolio_id": portfolio_id, "status": "active"}
+            return 200, {"portfolio_id": portfolio_id, "tenant_id": "tenant-sg", "status": "active"}
 
     class _StoredSource:
         def due_definitions_for_scheduler(self, *, tenant_id, region, booking_center_code, today):
@@ -710,7 +710,7 @@ def test_a_failing_stored_schedule_does_not_abort_the_pass() -> None:
 
     class _Portfolios:
         async def get_portfolio_detail(self, portfolio_id, correlation_id=None):
-            return 200, {"portfolio_id": portfolio_id, "status": "active"}
+            return 200, {"portfolio_id": portfolio_id, "tenant_id": "tenant-sg", "status": "active"}
 
     def _stored(schedule_id: str, portfolio: str):
         from app.report_batch_orchestrator.schedule_definitions import (
@@ -853,7 +853,7 @@ def test_partial_candidate_resolution_refuses_the_stored_cycle() -> None:
         async def get_portfolio_detail(self, portfolio_id, correlation_id=None):
             if portfolio_id == "PB_DOWN":
                 return 503, {}
-            return 200, {"portfolio_id": portfolio_id, "status": "active"}
+            return 200, {"portfolio_id": portfolio_id, "tenant_id": "tenant-sg", "status": "active"}
 
     class _StoredSource:
         def due_definitions_for_scheduler(self, **kwargs):

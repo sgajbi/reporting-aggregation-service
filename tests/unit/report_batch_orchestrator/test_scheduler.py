@@ -208,8 +208,16 @@ async def test_scheduler_refuses_broad_discovery_it_cannot_attribute(tmp_path) -
             200,
             {
                 "portfolios": [
-                    {"portfolio_id": "PB_SG_GLOBAL_BAL_001", "status": "active"},
-                    {"portfolio_id": "PB_SG_GLOBAL_BAL_002", "status": "active"},
+                    {
+                        "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+                        "tenant_id": "tenant-sg",
+                        "status": "active",
+                    },
+                    {
+                        "portfolio_id": "PB_SG_GLOBAL_BAL_002",
+                        "tenant_id": "tenant-sg",
+                        "status": "active",
+                    },
                 ]
             },
         ),
@@ -238,7 +246,14 @@ async def test_a_refused_schedule_creates_no_durable_batch(tmp_path) -> None:
     ledger = ReportBatchLedger(tmp_path / "scheduled.sqlite3")
     source = _PortfolioSource(
         {},
-        list_payload=(200, {"portfolios": [{"portfolio_id": "PB_X", "status": "active"}]}),
+        list_payload=(
+            200,
+            {
+                "portfolios": [
+                    {"portfolio_id": "PB_X", "tenant_id": "tenant-sg", "status": "active"}
+                ]
+            },
+        ),
     )
     scheduler = ReportBatchScheduler(batch_ledger=ledger, portfolio_source=source)
 
@@ -263,7 +278,11 @@ async def test_enumerated_schedules_are_unaffected_by_the_refusal(tmp_path) -> N
         {
             "PB_SG_GLOBAL_BAL_001": (
                 200,
-                {"portfolio_id": "PB_SG_GLOBAL_BAL_001", "status": "active"},
+                {
+                    "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+                    "tenant_id": "tenant-sg",
+                    "status": "active",
+                },
             )
         }
     )
@@ -284,11 +303,19 @@ async def test_scheduler_materializes_manifest_schedule_with_provenance(tmp_path
         {
             "PB_SG_GLOBAL_BAL_001": (
                 200,
-                {"portfolio_id": "PB_SG_GLOBAL_BAL_001", "status": "active"},
+                {
+                    "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+                    "tenant_id": "tenant-sg",
+                    "status": "active",
+                },
             ),
             "PB_SG_GLOBAL_BAL_002": (
                 200,
-                {"portfolio_id": "PB_SG_GLOBAL_BAL_002", "status": "active"},
+                {
+                    "portfolio_id": "PB_SG_GLOBAL_BAL_002",
+                    "tenant_id": "tenant-sg",
+                    "status": "active",
+                },
             ),
         }
     )
@@ -335,7 +362,11 @@ async def test_scheduler_preserves_supplied_manifest_hash(tmp_path) -> None:
         {
             "PB_SG_GLOBAL_BAL_001": (
                 200,
-                {"portfolio_id": "PB_SG_GLOBAL_BAL_001", "status": "active"},
+                {
+                    "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+                    "tenant_id": "tenant-sg",
+                    "status": "active",
+                },
             )
         }
     )
@@ -363,7 +394,11 @@ async def test_scheduler_skips_manifest_schedule_without_verified_candidates(tmp
         {
             "PB_SG_GLOBAL_BAL_001": (
                 200,
-                {"portfolio_id": "PB_SG_DIFFERENT_001", "status": "active"},
+                {
+                    "portfolio_id": "PB_SG_DIFFERENT_001",
+                    "tenant_id": "tenant-sg",
+                    "status": "active",
+                },
             ),
             "PB_SG_GLOBAL_BAL_002": (503, {}),
         }
@@ -394,7 +429,11 @@ async def test_scheduler_is_idempotent_for_same_schedule(tmp_path) -> None:
         {
             "PB_SG_GLOBAL_BAL_001": (
                 200,
-                {"portfolio_id": "PB_SG_GLOBAL_BAL_001", "status": "active"},
+                {
+                    "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+                    "tenant_id": "tenant-sg",
+                    "status": "active",
+                },
             )
         }
     )
@@ -431,7 +470,11 @@ async def test_scheduler_skips_mismatched_portfolio_payloads(tmp_path) -> None:
         {
             "PB_SG_GLOBAL_BAL_001": (
                 200,
-                {"portfolio_id": "PB_SG_DIFFERENT_001", "status": "active"},
+                {
+                    "portfolio_id": "PB_SG_DIFFERENT_001",
+                    "tenant_id": "tenant-sg",
+                    "status": "active",
+                },
             )
         }
     )
@@ -452,7 +495,11 @@ async def test_scheduler_rejects_inactive_portfolios(tmp_path) -> None:
         {
             "PB_SG_GLOBAL_BAL_001": (
                 200,
-                {"portfolio_id": "PB_SG_GLOBAL_BAL_001", "status": "closed"},
+                {
+                    "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+                    "tenant_id": "tenant-sg",
+                    "status": "closed",
+                },
             )
         }
     )
@@ -471,7 +518,11 @@ async def test_scheduler_keeps_distinct_schedules_from_colliding(tmp_path) -> No
         {
             "PB_SG_GLOBAL_BAL_001": (
                 200,
-                {"portfolio_id": "PB_SG_GLOBAL_BAL_001", "status": "active"},
+                {
+                    "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+                    "tenant_id": "tenant-sg",
+                    "status": "active",
+                },
             )
         }
     )
@@ -498,7 +549,11 @@ async def test_a_pre_migration_batch_blocks_rematerialization(tmp_path) -> None:
         {
             "PB_SG_GLOBAL_BAL_001": (
                 200,
-                {"portfolio_id": "PB_SG_GLOBAL_BAL_001", "status": "active"},
+                {
+                    "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+                    "tenant_id": "tenant-sg",
+                    "status": "active",
+                },
             )
         }
     )
@@ -540,7 +595,11 @@ async def test_option_hash_drift_on_the_same_cycle_converges_to_skip(tmp_path) -
         {
             "PB_SG_GLOBAL_BAL_001": (
                 200,
-                {"portfolio_id": "PB_SG_GLOBAL_BAL_001", "status": "active"},
+                {
+                    "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+                    "tenant_id": "tenant-sg",
+                    "status": "active",
+                },
             )
         }
     )
@@ -650,7 +709,12 @@ async def test_an_identity_mismatch_is_recorded_separately(tmp_path, caplog) -> 
     """
     ledger = ReportBatchLedger(tmp_path / "scheduled.sqlite3")
     source = _PortfolioSource(
-        {"PB_SG_GLOBAL_BAL_001": (200, {"portfolio_id": "PB_SOMETHING_ELSE", "status": "active"})}
+        {
+            "PB_SG_GLOBAL_BAL_001": (
+                200,
+                {"portfolio_id": "PB_SOMETHING_ELSE", "tenant_id": "tenant-sg", "status": "active"},
+            )
+        }
     )
     scheduler = ReportBatchScheduler(batch_ledger=ledger, portfolio_source=source)
 
@@ -673,7 +737,11 @@ async def test_a_readable_portfolio_is_not_reported_as_dropped(tmp_path, caplog)
         {
             "PB_SG_GLOBAL_BAL_001": (
                 200,
-                {"portfolio_id": "PB_SG_GLOBAL_BAL_001", "status": "active"},
+                {
+                    "portfolio_id": "PB_SG_GLOBAL_BAL_001",
+                    "tenant_id": "tenant-sg",
+                    "status": "active",
+                },
             )
         }
     )

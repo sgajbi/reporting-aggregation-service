@@ -394,6 +394,33 @@ preceded the refusal — so a query mentioning that column fails with
 `column "tenant_id" does not exist` and tells the operator nothing about the rows
 that stopped startup.
 
+For the same reason the repair writes to `caller_context_json`, not to `tenant_id`:
+that column does not exist between attempts. Attribute each row **individually and
+by key**, from evidence outside this table — the originating Idea request, the
+correlation id, the archived receipt:
+
+```sql
+-- One row, one decided tenant. Repeat per key; do not write a blanket UPDATE.
+UPDATE idea_evidence_intake
+SET caller_context_json = jsonb_set(
+        caller_context_json, '{tenant_id}', to_jsonb('<the-decided-tenant>'::text), true)
+WHERE idempotency_key = '<the-key-from-the-query-above>'
+  AND COALESCE(btrim(caller_context_json ->> 'tenant_id'), '') = ''
+RETURNING idempotency_key, caller_context_json ->> 'tenant_id' AS attributed_tenant;
+```
+
+Three deliberate properties. The `AND` clause makes it **idempotent and
+non-destructive**: it cannot overwrite a row that already carries a tenant, so a
+re-run after a partial repair is safe. `RETURNING` makes it **auditable** — the
+output is the record of which key was attributed to which tenant, and a repair
+that matched nothing returns no rows rather than reporting success. And it is
+**scoped to one key**, because attribution is a decision per row, not a pattern:
+a blanket update is how one tenant silently acquires another's receipt, which is
+the outcome the migration refuses in order to prevent.
+
+Re-run the query above until it returns nothing, then restart. The migration
+will then complete on its own.
+
 The transfer refuses the same case for the same reason, naming the key it could not attribute.
 
 **If the deployment has never accepted an intake there is no ledger file**, because it is created

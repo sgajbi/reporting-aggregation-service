@@ -37,10 +37,17 @@ CREATE TABLE IF NOT EXISTS idea_evidence_intake (
 -- that PostgreSQL enforces it as a real constraint rather than a
 -- convention the writer maintains.
 
--- Carried from the SQLite ledger: intake is looked up by source pack and
--- packet when reconciling what Idea sent against what Report accepted.
-CREATE INDEX IF NOT EXISTS idx_idea_evidence_intake_source
-    ON idea_evidence_intake (report_evidence_pack_id, evidence_packet_id);
+-- The source lookup index is created by migration 025, tenant-leading.
+--
+-- It was created here first, unscoped, and 025 dropped and replaced it. That
+-- is a correct end state and a wasteful path: the runner keeps no ledger of
+-- applied migrations, so every startup rebuilt the unscoped index here and
+-- dropped it there -- twice per process, since ensure_runtime_schema() runs
+-- the migrations through two readiness checks. On a populated ledger that is
+-- real I/O and locking for an index nothing ever reads.
+--
+-- Removing the creation rather than the drop, because the end state is
+-- identical either way and this is the statement with no lasting effect.
 
 -- Creation-ordered reads for operational inspection.
 CREATE INDEX IF NOT EXISTS idx_idea_evidence_intake_created

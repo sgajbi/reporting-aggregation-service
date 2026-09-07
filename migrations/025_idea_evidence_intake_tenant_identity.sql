@@ -37,7 +37,12 @@ WHERE tenant_id IS NULL;
 -- If this statement fails, the unattributed rows are visible and recoverable:
 --
 --     SELECT idempotency_key, report_evidence_pack_id, caller_context_json
---     FROM idea_evidence_intake WHERE tenant_id IS NULL,
+--     FROM idea_evidence_intake
+--     WHERE COALESCE(btrim(caller_context_json ->> 'tenant_id'), '') = '',
+--
+-- Predicated on the caller context, not on tenant_id. This migration runs in a
+-- transaction, so a refusal rolls back the ADD COLUMN above it and a query
+-- naming tenant_id would fail with column does not exist.
 --
 -- The operator attributes them deliberately from the surrounding evidence and
 -- re-runs. Nothing here guesses.
@@ -49,15 +54,36 @@ WHERE tenant_id IS NULL;
 -- file avoids the character entirely outside real statement ends.
 ALTER TABLE idea_evidence_intake ALTER COLUMN tenant_id SET NOT NULL;
 
--- Replace the key. The old constraint made one caller's chosen string a
--- global resource, the new one scopes it to the caller that chose it, so two
--- tenants may legitimately use the same idempotency key.
+-- Replace the key with a form that is a no-op on re-execution.
+--
+-- The migration runner keeps no ledger of applied migrations: it re-executes
+-- every file on every call, and ensure_runtime_schema() calls it more than once
+-- per process. So each statement here must be idempotent AND cheap. A
+-- DROP CONSTRAINT / ADD CONSTRAINT PRIMARY KEY pair is neither -- it takes an
+-- exclusive lock and rebuilds the unique index on every startup, which on a
+-- growing append-only ledger can block running instances or exceed the
+-- statement timeout and stop the API and workers from starting at all.
+--
+-- The old single-column key is dropped by name, which is a no-op once it is
+-- gone, and uniqueness is then carried by a unique index created IF NOT EXISTS.
+-- On a NOT NULL column pair that is the same guarantee a composite primary key
+-- gives, and it is what ON CONFLICT (tenant_id, idempotency_key) in the
+-- transfer path infers. The trade-off, stated rather than hidden: the table
+-- carries no formal PRIMARY KEY designation afterwards. Attaching one with
+-- ADD CONSTRAINT ... PRIMARY KEY USING INDEX would reintroduce a statement that
+-- cannot be re-run, so it belongs with a migration ledger, not here.
+--
+-- Conditional DDL is the alternative and is not available: the runner splits
+-- files on the statement separator, which tears a dollar-quoted DO block apart.
 ALTER TABLE idea_evidence_intake DROP CONSTRAINT IF EXISTS idea_evidence_intake_pkey;
-ALTER TABLE idea_evidence_intake
-    ADD CONSTRAINT idea_evidence_intake_pkey PRIMARY KEY (tenant_id, idempotency_key);
+CREATE UNIQUE INDEX IF NOT EXISTS idea_evidence_intake_tenant_identity
+    ON idea_evidence_intake (tenant_id, idempotency_key);
 
--- Reads are tenant-scoped, and the source lookup carried from 024 is scoped
--- with them: an unscoped index invites an unscoped query.
+-- Reads are tenant-scoped, so the source lookup is too: an unscoped index
+-- invites an unscoped query. Named distinctly from the index it replaces, for
+-- the same reason as the key above -- DROP IF EXISTS on the OLD name is a no-op
+-- once it is gone, and CREATE IF NOT EXISTS on the NEW name is a no-op once it
+-- exists. Reusing one name would drop and rebuild the index on every startup.
 DROP INDEX IF EXISTS idx_idea_evidence_intake_source;
-CREATE INDEX IF NOT EXISTS idx_idea_evidence_intake_source
+CREATE INDEX IF NOT EXISTS idx_idea_evidence_intake_tenant_source
     ON idea_evidence_intake (tenant_id, report_evidence_pack_id, evidence_packet_id);

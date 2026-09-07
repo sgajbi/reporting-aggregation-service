@@ -218,3 +218,58 @@ def test_a_fresh_file_is_created_on_the_tenant_scoped_schema(tmp_path) -> None:
     ledger = IdeaEvidenceIntakeLedger(tmp_path / "fresh.sqlite3")
 
     assert ledger.snapshot() == {}
+
+
+def test_an_interrupted_rebuild_leaves_the_original_table_intact(tmp_path, monkeypatch) -> None:
+    """The rebuild is one transaction, because SQLite would not make it one.
+
+    Python's `sqlite3` opens a transaction implicitly before DML but **not**
+    before DDL. Without an explicit `BEGIN`, the rename and the create autocommit
+    one statement at a time -- so a process dying between them would restart,
+    find the tenant-scoped table already present, return early, and serve an
+    empty ledger while every retained receipt sat in the renamed table,
+    accepting old retries as new intakes.
+
+    Interrupted at exactly that point: after the rename, during the create.
+    """
+
+    from app.idea_evidence_intake import service
+
+    path = _pre_344_file(tmp_path / "pre-344.sqlite3", {"tenant_id": "tenant-legacy"})
+    monkeypatch.setattr(
+        service, "_TENANT_SCOPED_DDL", "CREATE TABLE idea_evidence_intake (this is not valid sql"
+    )
+
+    with pytest.raises(sqlite3.OperationalError):
+        IdeaEvidenceIntakeLedger(path)
+
+    connection = sqlite3.connect(path)
+    try:
+        tables = {
+            row[0]
+            for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+        }
+        surviving = connection.execute("SELECT count(*) FROM idea_evidence_intake").fetchone()[0]
+    finally:
+        connection.close()
+
+    assert tables == {"idea_evidence_intake"}, "the rename must have rolled back"
+    assert surviving == 1, "the retained receipt must still be addressable"
+
+
+def test_the_migration_still_succeeds_after_an_interrupted_attempt(tmp_path, monkeypatch) -> None:
+    """An interrupted upgrade must be recoverable by simply starting again."""
+
+    from app.idea_evidence_intake import service
+
+    path = _pre_344_file(tmp_path / "pre-344.sqlite3", {"tenant_id": "tenant-legacy"})
+    monkeypatch.setattr(
+        service, "_TENANT_SCOPED_DDL", "CREATE TABLE idea_evidence_intake (this is not valid sql"
+    )
+    with pytest.raises(sqlite3.OperationalError):
+        IdeaEvidenceIntakeLedger(path)
+    monkeypatch.undo()
+
+    stored = IdeaEvidenceIntakeLedger(path).snapshot()
+
+    assert list(stored) == [("tenant-legacy", "a-key-chosen-before-344")]

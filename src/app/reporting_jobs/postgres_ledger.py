@@ -345,9 +345,9 @@ class PostgresReportJobLedger(ManagedPostgresAdapter):
                     """
                     SELECT report_request_id, request_hash
                     FROM report_request
-                    WHERE idempotency_key = %s
+                    WHERE tenant_id = %s AND idempotency_key = %s
                     """,
-                    (normalized_key,),
+                    (caller_context.tenant_id, normalized_key),
                 ).fetchone()
                 if existing:
                     record = self._existing_or_conflict(connection, existing, request_hash)
@@ -419,9 +419,9 @@ class PostgresReportJobLedger(ManagedPostgresAdapter):
                         """
                         SELECT report_request_id, request_hash
                         FROM report_request
-                        WHERE idempotency_key = %s
+                        WHERE tenant_id = %s AND idempotency_key = %s
                         """,
-                        (normalized_key,),
+                        (caller_context.tenant_id, normalized_key),
                     ).fetchone()
                     if existing:
                         record = self._existing_or_conflict(connection, existing, request_hash)
@@ -616,9 +616,9 @@ class PostgresReportJobLedger(ManagedPostgresAdapter):
                     """
                     SELECT report_request_id, request_hash
                     FROM report_request
-                    WHERE idempotency_key = %s
+                    WHERE tenant_id = %s AND idempotency_key = %s
                     """,
-                    (normalized_key,),
+                    (caller_context.tenant_id, normalized_key),
                 ).fetchone()
                 if existing:
                     record = self._existing_or_conflict(connection, existing, request_hash)

@@ -55,6 +55,45 @@ ReportJobRequest: TypeAlias = (
 )
 
 
+#: The `report_request` shape, defined once because two things create it: the
+#: first-run schema and the report#350 rebuild that replaces the old
+#: single-key UNIQUE. A second copy would drift the moment a column is added,
+#: and the rebuild would silently write a narrower table than the one the
+#: service expects.
+_REPORT_REQUEST_DDL = """
+CREATE TABLE IF NOT EXISTS report_request (
+    report_request_id TEXT PRIMARY KEY,
+    report_type TEXT NOT NULL,
+    portfolio_scope_json TEXT NOT NULL,
+    requested_output_formats_json TEXT NOT NULL,
+    as_of_date TEXT NOT NULL,
+    reporting_currency TEXT,
+    options_json TEXT NOT NULL,
+    trigger_type TEXT NOT NULL,
+    triggered_by TEXT NOT NULL,
+    caller_application TEXT NOT NULL,
+    tenant_id TEXT NOT NULL,
+    region TEXT NOT NULL,
+    booking_center_code TEXT,
+    role TEXT,
+    idempotency_key TEXT NOT NULL,
+    request_hash TEXT NOT NULL,
+    correlation_id TEXT NOT NULL,
+    trace_id TEXT NOT NULL,
+    created_at TEXT NOT NULL
+)
+"""
+
+
+class ReportJobLedgerMigrationError(RuntimeError):
+    """A retained `report_request` upgrade could not be completed safely.
+
+    Raised rather than swallowed: a partial rebuild would leave retained
+    requests in a renamed table while the live one answered empty, and every
+    replay would then look like a new request.
+    """
+
+
 class MissingIdempotencyKeyError(ValueError):
     pass
 
@@ -360,34 +399,88 @@ class ReportJobLedger:
         finally:
             connection.close()
 
+    @staticmethod
+    def _migrate_report_request_to_tenant_identity(connection: sqlite3.Connection) -> None:
+        """Rebuild `report_request` when it still carries the single-key UNIQUE.
+
+        Detected from the schema rather than assumed from a version counter:
+        a unique index covering exactly `idempotency_key` is the old identity,
+        whatever created it.
+
+        The whole rebuild runs in one explicit transaction. Python's `sqlite3`
+        opens a transaction implicitly before DML but NOT before DDL, so without
+        `BEGIN IMMEDIATE` the rename and the create autocommit one statement at
+        a time -- and a process dying between them would restart, find
+        `report_request` already present, and serve an empty ledger while every
+        retained request sat in the renamed table.
+        """
+        legacy_unique = False
+        for index_row in connection.execute("PRAGMA index_list(report_request)").fetchall():
+            if not index_row["unique"]:
+                continue
+            columns = [
+                str(column_row["name"])
+                for column_row in connection.execute(
+                    f"PRAGMA index_info({index_row['name']!r})"
+                ).fetchall()
+            ]
+            if columns == ["idempotency_key"]:
+                legacy_unique = True
+                break
+        if not legacy_unique:
+            return
+
+        # `ALTER TABLE ... RENAME` rewrites other tables' foreign-key references
+        # to follow the rename, so `report_job` would start pointing at the
+        # renamed table and the drop would fail with a FOREIGN KEY violation.
+        # `legacy_alter_table` keeps those references naming `report_request`,
+        # which is the table about to be recreated under that name.
+        #
+        # Both pragmas are no-ops inside a transaction, so they are set first.
+        connection.execute("PRAGMA foreign_keys = OFF")
+        connection.execute("PRAGMA legacy_alter_table = ON")
+        connection.execute("BEGIN IMMEDIATE")
+        try:
+            columns = [
+                str(row["name"])
+                for row in connection.execute("PRAGMA table_info(report_request)").fetchall()
+            ]
+            column_list = ", ".join(columns)
+            connection.execute("ALTER TABLE report_request RENAME TO report_request_pre_350")
+            connection.execute(_REPORT_REQUEST_DDL)
+            connection.execute(
+                f"INSERT INTO report_request ({column_list}) "
+                f"SELECT {column_list} FROM report_request_pre_350"
+            )
+            carried = connection.execute("SELECT count(*) AS n FROM report_request").fetchone()["n"]
+            retained = connection.execute(
+                "SELECT count(*) AS n FROM report_request_pre_350"
+            ).fetchone()["n"]
+            if carried != retained:
+                raise ReportJobLedgerMigrationError(
+                    f"report_request upgrade carried {carried} of {retained} retained requests"
+                )
+            connection.execute("DROP TABLE report_request_pre_350")
+            # Integrity is asserted rather than assumed: foreign keys were
+            # disabled for the rebuild, so this is the only thing standing
+            # between a silent orphan and a ledger that answers wrongly.
+            violations = connection.execute("PRAGMA foreign_key_check").fetchall()
+            if violations:
+                raise ReportJobLedgerMigrationError(
+                    f"report_request upgrade left {len(violations)} foreign-key violation(s)"
+                )
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.execute("PRAGMA legacy_alter_table = OFF")
+            connection.execute("PRAGMA foreign_keys = ON")
+        connection.commit()
+
     def ensure_schema(self) -> None:
         with self._connect() as connection:
             connection.execute("PRAGMA foreign_keys = ON")
-            connection.execute(
-                """
-                CREATE TABLE IF NOT EXISTS report_request (
-                    report_request_id TEXT PRIMARY KEY,
-                    report_type TEXT NOT NULL,
-                    portfolio_scope_json TEXT NOT NULL,
-                    requested_output_formats_json TEXT NOT NULL,
-                    as_of_date TEXT NOT NULL,
-                    reporting_currency TEXT,
-                    options_json TEXT NOT NULL,
-                    trigger_type TEXT NOT NULL,
-                    triggered_by TEXT NOT NULL,
-                    caller_application TEXT NOT NULL,
-                    tenant_id TEXT NOT NULL,
-                    region TEXT NOT NULL,
-                    booking_center_code TEXT,
-                    role TEXT,
-                    idempotency_key TEXT NOT NULL UNIQUE,
-                    request_hash TEXT NOT NULL,
-                    correlation_id TEXT NOT NULL,
-                    trace_id TEXT NOT NULL,
-                    created_at TEXT NOT NULL
-                )
-                """
-            )
+            connection.execute(_REPORT_REQUEST_DDL)
             connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS report_job (
@@ -422,6 +515,21 @@ class ReportJobLedger:
                     accepted_document_contract_json TEXT,
                     FOREIGN KEY(report_request_id) REFERENCES report_request(report_request_id)
                 )
+                """
+            )
+            # report#350: identity moved from the caller's idempotency key alone
+            # to (tenant_id, idempotency_key). A file created before that carries
+            # a column-level UNIQUE on idempotency_key, which SQLite implements
+            # as an auto-index that cannot be dropped and cannot be altered --
+            # so the table is rebuilt, exactly as migration 025 rebuilt the
+            # intake ledger. `CREATE TABLE IF NOT EXISTS` above is a no-op
+            # against an existing file and would leave the old constraint in
+            # place while every query looked correct.
+            self._migrate_report_request_to_tenant_identity(connection)
+            connection.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS report_request_tenant_idempotency_key
+                ON report_request (tenant_id, idempotency_key)
                 """
             )
             # The accepted-document-contract column arrived after the table
@@ -725,9 +833,9 @@ class ReportJobLedger:
                     """
                     SELECT report_request_id, request_hash
                     FROM report_request
-                    WHERE idempotency_key = ?
+                    WHERE tenant_id = ? AND idempotency_key = ?
                     """,
-                    (normalized_key,),
+                    (caller_context.tenant_id, normalized_key),
                 ).fetchone()
                 if existing:
                     record = self._load_by_request_id(connection, existing["report_request_id"])

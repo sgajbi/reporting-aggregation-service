@@ -370,7 +370,10 @@ against a deployment you did not mean to touch.
 
 **Use the same Compose project selector the stack was launched with**, exactly as the rollout above
 requires — discover it with `docker compose ls` and export it before the first command here, the
-same way. If it was started with `-p custom` or an exported `COMPOSE_PROJECT_NAME`, every command
+same way. Both blocks below carry that discovery step. The values in them are placeholders and are
+quoted deliberately: the earlier `<the project the stack runs under>` form was not merely unhelpful,
+it was wrong to paste, because `<` opens a redirect in both shells and the command fails on a file
+that does not exist rather than on a name the operator can see is missing. If it was started with `-p custom` or an exported `COMPOSE_PROJECT_NAME`, every command
 here needs it too — otherwise they address the directory-derived project, so the `stop` does not
 quiesce the running service and the `run` commands reach a different database and a different
 intake volume. A transfer that reports success against the wrong project has moved nothing.
@@ -431,8 +434,10 @@ that is the situation: an absent file is also what a wrong `--sqlite-path` looks
 PowerShell, matching the rest of this runbook:
 
 ```powershell
-Set-Location <repository root>
-$env:COMPOSE_PROJECT_NAME = "<the project the stack runs under>"   # omit only if it is the directory default
+Set-Location "C:\path\to\lotus-report"   # quoted; this is a placeholder, replace the whole value
+
+docker compose ls                          # lists running projects; the NAME column is the value
+$env:COMPOSE_PROJECT_NAME = "your-project-name"   # quoted; omit only if it is the directory default
 
 # PowerShell does not stop on a failing native command, so each gate below is
 # checked explicitly. Without these an operator pastes the whole block and
@@ -460,8 +465,10 @@ Bash equivalent:
 
 ```bash
 set -euo pipefail
-cd <repository root>
-export COMPOSE_PROJECT_NAME=<the project the stack runs under>   # omit only if it is the directory default
+cd /path/to/lotus-report        # a placeholder; `cd <repository root>` is a redirect, not a path
+
+docker compose ls               # lists running projects; the NAME column is the value
+export COMPOSE_PROJECT_NAME="your-project-name"   # quoted; omit only if it is the directory default
 
 docker compose stop lotus-report
 

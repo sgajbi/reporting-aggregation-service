@@ -254,3 +254,33 @@ def test_the_route_cannot_be_reached_without_an_admitted_tenant(client_and_ledge
 
     assert response.status_code == 400
     assert ledger.snapshot() == {}
+
+
+def test_one_tenant_with_two_keys_gets_two_records(client_and_ledger) -> None:
+    """The key must still be half of the identity, not decoration.
+
+    Every other test here varies the tenant and holds the key fixed, so all of
+    them pass against an implementation that scopes by tenant and **ignores the
+    key entirely** -- verified by making the lookup do exactly that: 7 of 7
+    still green. That implementation would be badly wrong. Within one tenant,
+    two genuinely different requests would collide, and the second would be
+    replayed as the first or refused for a payload it never sent -- the same
+    defect this change removes, moved inside a tenant instead of across two.
+
+    This is the wrong-key run rather than the no-write run: it fails if the key
+    stops contributing to identity, which no other test in the file does.
+    """
+
+    client, ledger = client_and_ledger
+
+    first = client.post(_ROUTE, json=_payload(), headers=_headers("tenant-a", "first-key"))
+    second = client.post(
+        _ROUTE,
+        json=_payload(report_evidence_pack_id="irep_second"),
+        headers=_headers("tenant-a", "second-key"),
+    )
+
+    assert first.status_code == 202
+    assert second.status_code == 202
+    assert first.json()["intake_id"] != second.json()["intake_id"]
+    assert set(ledger.snapshot()) == {("tenant-a", "first-key"), ("tenant-a", "second-key")}

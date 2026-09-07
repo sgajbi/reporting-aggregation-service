@@ -15,10 +15,12 @@ isolation.
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 from uuid import uuid4
 
+import psycopg
 import pytest
 
 from app.reporting_jobs.models import PortfolioReviewJobRequest, ReportCallerContext
@@ -32,6 +34,62 @@ pytestmark = pytest.mark.skipif(
 
 TENANT_A = "tenant-isolation-a"
 TENANT_B = "tenant-isolation-b"
+
+
+@pytest.fixture(autouse=True)
+def remove_this_suite_s_records() -> Iterator[None]:
+    """Leave the shared database exactly as this suite found it.
+
+    The integration session provisions one isolated database and every test in
+    it shares that database. Submitting a job enqueues a **pending work item**,
+    and `claim_work_items(limit=1)` claims one pending item from the whole
+    table -- so residue from this file made
+    `test_postgres_report_submission_persists_and_recovers_durable_work` claim
+    one of ours and find none of its own. It failed in CI while passing locally,
+    because locally these tests ran alone.
+
+    The pre-existing test's assumption that it is the only producer of pending
+    work is fragile, but the fragility is not its fault to carry: a proof that
+    perturbs its neighbours is not finished.
+    """
+    yield
+    with psycopg.connect(DATABASE_URL, autocommit=True) as connection:
+        connection.execute(
+            """
+            DELETE FROM report_job_work_item
+            WHERE report_job_id IN (
+                SELECT j.report_job_id
+                FROM report_job j
+                JOIN report_request r ON r.report_request_id = j.report_request_id
+                WHERE r.tenant_id = ANY(%s)
+            )
+            """,
+            ([TENANT_A, TENANT_B],),
+        )
+        connection.execute(
+            """
+            DELETE FROM report_status_event
+            WHERE report_job_id IN (
+                SELECT j.report_job_id
+                FROM report_job j
+                JOIN report_request r ON r.report_request_id = j.report_request_id
+                WHERE r.tenant_id = ANY(%s)
+            )
+            """,
+            ([TENANT_A, TENANT_B],),
+        )
+        connection.execute(
+            """
+            DELETE FROM report_job
+            WHERE report_request_id IN (
+                SELECT report_request_id FROM report_request WHERE tenant_id = ANY(%s)
+            )
+            """,
+            ([TENANT_A, TENANT_B],),
+        )
+        connection.execute(
+            "DELETE FROM report_request WHERE tenant_id = ANY(%s)", ([TENANT_A, TENANT_B],)
+        )
 
 
 def _ledger() -> PostgresReportJobLedger:

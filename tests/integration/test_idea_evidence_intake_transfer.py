@@ -95,6 +95,7 @@ def _populated_sqlite_ledger(
         key = f"intake-{suffix}-{index}"
         receipts[key] = ledger.accept(
             _request(suffix, index),
+            tenant_id="tenant-sg",
             idempotency_key=key,
             caller_context=ReportCallerContext(
                 triggered_by="advisor-123",
@@ -147,7 +148,9 @@ def test_a_populated_ledger_transfers_and_still_replays(migrated_database_url, t
 
     postgres_ledger = PostgresIdeaEvidenceIntakeLedger(migrated_database_url)
     for index, (key, original) in enumerate(receipts.items()):
-        replayed = postgres_ledger.accept(_request(suffix, index), idempotency_key=key)
+        replayed = postgres_ledger.accept(
+            _request(suffix, index), tenant_id="tenant-sg", idempotency_key=key
+        )
         assert replayed == original, f"{key} did not replay to its pre-migration receipt"
 
 

@@ -170,9 +170,21 @@ with `-p custom` or an exported `COMPOSE_PROJECT_NAME`, every command below need
 otherwise they address the directory-derived project instead, so the `stop` does not quiesce
 the running service and `create` collides with the pinned `container_name`. Set it once:
 
+Find the project the stack is actually running under before setting it — the value below is
+a placeholder, not shell syntax, and pasting it literally is a redirect rather than a name:
+
 ```shell
-export COMPOSE_PROJECT_NAME=<the project the stack runs under>   # omit only if it is the directory default
+docker compose ls                       # lists running projects; the NAME column is the value
+export COMPOSE_PROJECT_NAME="your-project-name"   # quoted; omit only if it is the directory default
 ```
+
+```powershell
+docker compose ls
+$env:COMPOSE_PROJECT_NAME = "your-project-name"
+```
+
+Keep it exported for every command that follows. Nothing downstream re-derives it, and each step
+below reports success against whichever project it resolved.
 
 ```shell
 set -euo pipefail        # every step below is fail-stop; do not continue past an error
@@ -357,10 +369,25 @@ it either finds no compose file or, worse, resolves a *different* project and re
 against a deployment you did not mean to touch.
 
 **Use the same Compose project selector the stack was launched with**, exactly as the rollout above
-requires. If it was started with `-p custom` or an exported `COMPOSE_PROJECT_NAME`, every command
+requires — discover it with `docker compose ls` and export it before the first command here, the
+same way. If it was started with `-p custom` or an exported `COMPOSE_PROJECT_NAME`, every command
 here needs it too — otherwise they address the directory-derived project, so the `stop` does not
 quiesce the running service and the `run` commands reach a different database and a different
 intake volume. A transfer that reports success against the wrong project has moved nothing.
+
+**Rows without a tenant are refused, not defaulted.** Migration 025 makes the admitted tenant half
+of the intake primary key and backfills it from each row's stored `caller_context_json`. A retained
+row whose context never held a tenant cannot be attributed, so `ALTER COLUMN tenant_id SET NOT NULL`
+fails and the migration stops. That is deliberate: a defaulted tenant would make one tenant the
+owner of another's retained receipt, and the result would be indistinguishable from a genuine
+record. List them, decide their attribution from the surrounding evidence, set it, and re-run:
+
+```sql
+SELECT idempotency_key, report_evidence_pack_id, caller_context_json
+FROM idea_evidence_intake WHERE tenant_id IS NULL;
+```
+
+The transfer refuses the same case for the same reason, naming the key it could not attribute.
 
 **If the deployment has never accepted an intake there is no ledger file**, because it is created
 on the first request. That is a legitimate zero-record cutover, and it needs

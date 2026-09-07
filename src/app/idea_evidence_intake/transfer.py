@@ -45,6 +45,7 @@ from app.idea_evidence_intake.service import as_utc_instant
 
 #: Copied verbatim. Order matters: it is the INSERT's column order.
 TRANSFERRED_COLUMNS = (
+    "tenant_id",
     "idempotency_key",
     "intake_id",
     "payload_fingerprint",
@@ -73,7 +74,7 @@ VERIFIED_COLUMNS = tuple(
 _INSERT = f"""
 INSERT INTO idea_evidence_intake ({", ".join(TRANSFERRED_COLUMNS)})
 VALUES ({", ".join(["%s"] * len(TRANSFERRED_COLUMNS))})
-ON CONFLICT (idempotency_key) DO NOTHING
+ON CONFLICT (tenant_id, idempotency_key) DO NOTHING
 """
 
 
@@ -166,7 +167,47 @@ def _read_source_rows(sqlite_path: Path | str) -> Iterator[Mapping[str, Any]]:
     finally:
         connection.close()
     for row in rows:
-        yield {key: row[key] for key in row.keys()}
+        yield _with_tenant({key: row[key] for key in row.keys()})
+
+
+def _with_tenant(row: dict[str, Any]) -> dict[str, Any]:
+    """The source row with its tenant established, or a refusal.
+
+    A ledger file written before report#344 has no `tenant_id` column at all --
+    the tenant was stored only inside `caller_context_json`, where nothing read
+    it for identity. This lifts it out so the transferred row carries the
+    attribution the target's primary key now requires.
+
+    A row whose context holds no tenant is refused rather than defaulted. A
+    defaulted tenant would make one tenant the owner of another's retained
+    receipt, which is worse than the defect being repaired because the result
+    would be indistinguishable from a genuine record. Refusing leaves the row
+    in the source file, visible and attributable by an operator who can see the
+    surrounding evidence.
+    """
+
+    existing = row.get("tenant_id")
+    if isinstance(existing, str) and existing.strip():
+        row["tenant_id"] = existing.strip()
+        return row
+
+    context = row.get("caller_context_json")
+    tenant = None
+    if isinstance(context, str) and context.strip():
+        try:
+            tenant = json.loads(context).get("tenant_id")
+        except json.JSONDecodeError as exc:
+            raise IntakeTransferError(
+                f"{row.get('idempotency_key')!r}: caller_context_json is not valid JSON"
+            ) from exc
+    if not isinstance(tenant, str) or not tenant.strip():
+        raise IntakeTransferError(
+            f"{row.get('idempotency_key')!r}: no tenant in caller_context_json. "
+            "Attribute this row deliberately before transferring it; the transfer "
+            "will not default or discard it (report#344)."
+        )
+    row["tenant_id"] = tenant.strip()
+    return row
 
 
 def _insert_parameters(row: Mapping[str, Any]) -> Sequence[Any]:
@@ -191,12 +232,13 @@ def _parse_instant(value: str) -> datetime:
 def _verify_row(connection: psycopg.Connection[dict[str, Any]], row: Mapping[str, Any]) -> str:
     """Empty when the target row faithfully holds the source row."""
     key = row["idempotency_key"]
+    tenant = row["tenant_id"]
     target = connection.execute(
-        "SELECT * FROM idea_evidence_intake WHERE idempotency_key = %s",
-        (key,),
+        "SELECT * FROM idea_evidence_intake WHERE tenant_id = %s AND idempotency_key = %s",
+        (tenant, key),
     ).fetchone()
     if target is None:
-        return f"{key}: missing from target"
+        return f"{tenant}/{key}: missing from target"
 
     for column in VERIFIED_COLUMNS:
         source_value = row[column]

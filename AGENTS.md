@@ -5,8 +5,8 @@ This is the governed operating contract for Lotus agent work.
 Repo-root `AGENTS.md` files across Lotus repositories and the deployed local `AGENTS.md` should
 remain synchronized copies of this file.
 
-Use `lotus-platform/automation/Sync-AgentOperatingContract.ps1` to synchronize or verify that
-deployed copy. That path identifies the script; it is not a command that runs from where you are
+Use `lotus-platform/automation/Sync-AgentOperatingContract.ps1` to synchronize or verify those
+copies. That path identifies the script; it is not a command that runs from where you are
 standing. Run it from the `lotus-platform` checkout, because the qualified form resolves from the
 directory holding the checkouts rather than from the repository you are working in:
 
@@ -19,6 +19,10 @@ powershell -ExecutionPolicy Bypass -File automation/Sync-AgentOperatingContract.
 cd "$LOTUS_WORKSPACE_ROOT/lotus-platform"
 pwsh -File automation/Sync-AgentOperatingContract.ps1 -CheckOnly
 ```
+
+Bare `-CheckOnly` verifies the repository-root copy, which is the one CI can check: the deployed
+file exists only on a developer machine. Add `-IncludeDeployedTarget` to check that copy as well,
+and `-AllRepoRoots` to check every sibling checkout.
 
 Set `LOTUS_WORKSPACE_ROOT` once to the directory holding the Lotus checkouts. Without a
 `lotus-platform` checkout the script cannot be run at all: the GitHub fallback below can display a

@@ -161,6 +161,7 @@ async def accept_idea_evidence_pack(
     try:
         return ledger.accept(
             request,
+            tenant_id=caller_context.tenant_id,
             idempotency_key=idempotency_key.strip(),
             correlation_id=correlation_id,
             trace_id=trace_id,
@@ -286,6 +287,7 @@ async def materialize_idea_evidence_pack(
     try:
         intake_ledger.accept(
             request.idea_evidence_pack,
+            tenant_id=caller_context.tenant_id,
             idempotency_key=materialization_key,
             correlation_id=correlation_id,
             trace_id=trace_id,
@@ -544,7 +546,7 @@ def _refuse_unverifiable_legacy_replay(
     not a refusal: that is a genuinely new request, with nothing to verify
     against. Only a row that exists without recoverable identity is refused.
     """
-    if intake_ledger.has_record(idempotency_key):
+    if intake_ledger.has_record(tenant_id=tenant_id, idempotency_key=idempotency_key):
         # A real prior intake: accept() will compare payload fingerprints
         # against it and raise on any change, including to the fields the
         # report request hash omits.

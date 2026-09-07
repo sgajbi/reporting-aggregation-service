@@ -27,6 +27,7 @@ def test_idea_evidence_intake_accepts_source_safe_not_certified_handoff() -> Non
 
     response = ledger.accept(
         _request(),
+        tenant_id="tenant-sg",
         idempotency_key="idea-report-intake-001",
         accepted_at_utc=accepted_at,
         correlation_id="corr-idea-report-intake",
@@ -52,8 +53,8 @@ def test_idea_evidence_intake_is_idempotent_for_same_payload() -> None:
     ledger = IdeaEvidenceIntakeLedger()
     request = _request()
 
-    first = ledger.accept(request, idempotency_key="idea-report-intake-001")
-    second = ledger.accept(request, idempotency_key="idea-report-intake-001")
+    first = ledger.accept(request, tenant_id="tenant-sg", idempotency_key="idea-report-intake-001")
+    second = ledger.accept(request, tenant_id="tenant-sg", idempotency_key="idea-report-intake-001")
 
     assert second == first
     assert len(ledger.snapshot()) == 1
@@ -61,11 +62,12 @@ def test_idea_evidence_intake_is_idempotent_for_same_payload() -> None:
 
 def test_idea_evidence_intake_conflicts_when_idempotency_payload_changes() -> None:
     ledger = IdeaEvidenceIntakeLedger()
-    ledger.accept(_request(), idempotency_key="idea-report-intake-001")
+    ledger.accept(_request(), tenant_id="tenant-sg", idempotency_key="idea-report-intake-001")
 
     with pytest.raises(IdeaEvidenceIntakeConflictError):
         ledger.accept(
             _request(report_evidence_pack_id="irep_changed"),
+            tenant_id="tenant-sg",
             idempotency_key="idea-report-intake-001",
         )
 
@@ -90,6 +92,7 @@ def test_idea_evidence_intake_replays_same_payload_across_fresh_durable_ledger(
 
     first = first_ledger.accept(
         _request(),
+        tenant_id="tenant-sg",
         idempotency_key="idea-report-intake-001",
         accepted_at_utc=accepted_at,
         correlation_id="corr-idea-report-intake",
@@ -98,6 +101,7 @@ def test_idea_evidence_intake_replays_same_payload_across_fresh_durable_ledger(
     )
     second = second_ledger.accept(
         _request(),
+        tenant_id="tenant-sg",
         idempotency_key="idea-report-intake-001",
         correlation_id="corr-idea-report-intake-retry",
         trace_id="trace-idea-report-intake-retry",
@@ -107,7 +111,7 @@ def test_idea_evidence_intake_replays_same_payload_across_fresh_durable_ledger(
     assert second == first
     records = second_ledger.snapshot()
     assert len(records) == 1
-    record = records["idea-report-intake-001"]
+    record = records[("tenant-sg", "idea-report-intake-001")]
     assert record.payload_fingerprint.startswith("sha256:")
     assert record.response == first
     assert record.accepted_at_utc == accepted_at
@@ -120,13 +124,14 @@ def test_idea_evidence_intake_replays_same_payload_across_fresh_durable_ledger(
 def test_idea_evidence_intake_conflicts_across_fresh_durable_ledger(tmp_path) -> None:
     db_path = tmp_path / "idea-intake.sqlite3"
     first_ledger = IdeaEvidenceIntakeLedger(db_path)
-    first_ledger.accept(_request(), idempotency_key="idea-report-intake-001")
+    first_ledger.accept(_request(), tenant_id="tenant-sg", idempotency_key="idea-report-intake-001")
 
     restarted_ledger = IdeaEvidenceIntakeLedger(db_path)
 
     with pytest.raises(IdeaEvidenceIntakeConflictError):
         restarted_ledger.accept(
             _request(report_evidence_pack_id="irep_changed"),
+            tenant_id="tenant-sg",
             idempotency_key="idea-report-intake-001",
         )
 
@@ -134,8 +139,8 @@ def test_idea_evidence_intake_conflicts_across_fresh_durable_ledger(tmp_path) ->
 def test_idea_evidence_intake_durable_insert_race_replays_existing_record(tmp_path) -> None:
     db_path = tmp_path / "idea-intake.sqlite3"
     first_ledger = IdeaEvidenceIntakeLedger(db_path)
-    first_ledger.accept(_request(), idempotency_key="idea-report-intake-001")
-    record = first_ledger.snapshot()["idea-report-intake-001"]
+    first_ledger.accept(_request(), tenant_id="tenant-sg", idempotency_key="idea-report-intake-001")
+    record = first_ledger.snapshot()[("tenant-sg", "idea-report-intake-001")]
 
     restarted_ledger = IdeaEvidenceIntakeLedger(db_path)
 
@@ -154,8 +159,8 @@ def test_idea_evidence_intake_durable_insert_race_conflicts_on_changed_fingerpri
 ) -> None:
     db_path = tmp_path / "idea-intake.sqlite3"
     first_ledger = IdeaEvidenceIntakeLedger(db_path)
-    first_ledger.accept(_request(), idempotency_key="idea-report-intake-001")
-    record = first_ledger.snapshot()["idea-report-intake-001"]
+    first_ledger.accept(_request(), tenant_id="tenant-sg", idempotency_key="idea-report-intake-001")
+    record = first_ledger.snapshot()[("tenant-sg", "idea-report-intake-001")]
     changed_record = replace(record, payload_fingerprint="sha256:changed")
 
     restarted_ledger = IdeaEvidenceIntakeLedger(db_path)
@@ -178,11 +183,12 @@ def test_idea_evidence_intake_normalizes_naive_accepted_at_for_durable_records(
 
     ledger.accept(
         _request(),
+        tenant_id="tenant-sg",
         idempotency_key="idea-report-intake-001",
         accepted_at_utc=accepted_at,
     )
 
-    record = IdeaEvidenceIntakeLedger(db_path).snapshot()["idea-report-intake-001"]
+    record = IdeaEvidenceIntakeLedger(db_path).snapshot()[("tenant-sg", "idea-report-intake-001")]
     assert record.accepted_at_utc == datetime(2026, 6, 24, 8, 30, tzinfo=UTC)
 
 
@@ -193,19 +199,20 @@ def test_idea_evidence_intake_rolls_back_failed_durable_write_context(tmp_path) 
         with ledger._connect() as connection:  # noqa: SLF001 - rollback regression test
             connection.execute(
                 "INSERT INTO idea_evidence_intake ("
-                "idempotency_key, intake_id, payload_fingerprint, response_json, "
+                "tenant_id, idempotency_key, intake_id, payload_fingerprint, response_json, "
                 "caller_context_json, report_evidence_pack_id, conversion_intent_id, "
                 "candidate_id, evidence_packet_id, evidence_content_fingerprint, producer, "
                 "supportability_status, accepted_at_utc, created_at_utc"
                 ") VALUES ("
-                "'rolled-back-key', 'intake', 'sha256:test', '{}', '{}', 'irep', 'icnv', "
+                "'tenant-sg', 'rolled-back-key', 'intake', 'sha256:test', '{}', '{}', "
+                "'irep', 'icnv', "
                 "'icand', 'ievp', 'sha256:test', 'lotus-idea', 'not_certified', "
                 "'2026-06-24T08:30:00Z', '2026-06-24T08:30:00Z'"
                 ")"
             )
             raise RuntimeError("boom")
 
-    assert "rolled-back-key" not in ledger.snapshot()
+    assert ("tenant-sg", "rolled-back-key") not in ledger.snapshot()
 
 
 def test_idea_evidence_materialization_maps_to_source_owned_proof_pack_request() -> None:

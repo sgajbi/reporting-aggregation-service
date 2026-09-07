@@ -1259,3 +1259,109 @@ class _MissingKeyReportJobLedger:
 class _UnexpectedListLedger:
     def list_job_owner_snapshots(self, **kwargs):
         raise AssertionError(f"Unauthorized recovery must not query the repository: {kwargs}")
+
+
+class _TwoTenantRetentionPolicyResolver:
+    """Authorises both tenants under test.
+
+    The shipped policy authorises `tenant-sg` alone, and retention authority is
+    a different control from intake identity. Left in place it would refuse the
+    second tenant for the wrong reason, and a test asserting isolation would
+    pass without exercising isolation.
+    """
+
+    def resolve(self, *, policy_ref, tenant_id, producer, at_utc=None):
+        from app.idea_evidence_intake.retention_policy import IdeaEvidenceRetentionPolicy
+
+        return IdeaEvidenceRetentionPolicy(
+            policy_ref=policy_ref,
+            policy_version="1.0.0",
+            purpose="GOVERNED_CLIENT_REPORT_EVIDENCE",
+            retention_start_event="REPORT_ARCHIVED",
+            retention_duration_days=2557,
+            approval_authority="lotus-report-information-governance",
+            residency_region="APAC",
+            authorized_tenants=frozenset({"tenant-a", "tenant-b"}),
+            authorized_producers=frozenset({"lotus-idea"}),
+            legal_hold_active=False,
+            erasure_action="REDACT_EVIDENCE_REFERENCES_AFTER_APPROVAL",
+            archive_handoff_policy="lotus-archive:idea-evidence-retention:v1",
+            effective_from_utc=datetime(2026, 1, 1, tzinfo=UTC),
+        )
+
+
+def _tenant_headers(tenant_id: str, idempotency_key: str) -> dict[str, str]:
+    headers = _headers(idempotency_key)
+    headers["X-Tenant-Id"] = tenant_id
+    return headers
+
+
+def test_materialization_is_tenant_scoped_for_a_shared_idempotency_key(tmp_path) -> None:
+    """The route that carries the fail-closed refusal, which the isolation
+    suite did not reach.
+
+    Those tests all drive `POST ""`. This is the OTHER route using the same
+    ledger, and it is the one where `has_record` gates the legacy-replay
+    refusal added by report#334 -- so an unscoped answer here skipped a refusal
+    on another tenant's evidence, which is the most consequential form of the
+    defect. Holding the route fixed across a suite is the same unproven-constant
+    trap as holding the key fixed.
+    """
+
+    ledger = ReportJobLedger(tmp_path / "jobs.sqlite3")
+    lineage_store = ReportInputSnapshotStore(tmp_path / "lineage.sqlite3")
+    intake_ledger = IdeaEvidenceIntakeLedger(tmp_path / "intake.sqlite3")
+    capture_service = _IdeaEvidenceCaptureService(ledger, lineage_store)
+    render_service = PortfolioReviewRenderOrchestrationService(
+        render_client=_SuccessfulRenderClient(),
+        snapshot_store=lineage_store,
+        job_ledger=ledger,
+    )
+    app.dependency_overrides[get_report_job_ledger] = lambda: ledger
+    app.dependency_overrides[get_idea_evidence_intake_ledger] = lambda: intake_ledger
+    app.dependency_overrides[get_idea_evidence_retention_policy_resolver] = lambda: (
+        _TwoTenantRetentionPolicyResolver()
+    )
+    app.dependency_overrides[get_portfolio_review_snapshot_capture_service] = lambda: (
+        capture_service
+    )
+    app.dependency_overrides[get_portfolio_review_render_orchestration_service] = lambda: (
+        render_service
+    )
+    client = TestClient(app)
+    shared_key = "a-materialization-key-two-tenants-chose"
+    try:
+        first = client.post(
+            "/reports/idea-evidence-packs/materializations",
+            json=_materialization_payload(),
+            headers=_tenant_headers("tenant-a", shared_key),
+        )
+        # Issued for its effect on the ledger, not for its status: see the note
+        # below on why this route's response code is deliberately unasserted.
+        client.post(
+            "/reports/idea-evidence-packs/materializations",
+            json=_materialization_payload(),
+            headers=_tenant_headers("tenant-b", shared_key),
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert first.status_code == 202
+
+    # The intake ledger is scoped: both tenants hold their own row under their
+    # own identity, addressed by (tenant, key). This is what report#344 fixed,
+    # and this route reaches it through `has_record` -- the read that gates the
+    # fail-closed legacy-replay refusal from report#334.
+    stored = intake_ledger.snapshot()
+    assert set(stored) == {("tenant-a", shared_key), ("tenant-b", shared_key)}
+    assert stored[("tenant-a", shared_key)].tenant_id == "tenant-a"
+    assert stored[("tenant-b", shared_key)].tenant_id == "tenant-b"
+
+    # Deliberately NOT asserted here: `second.status_code`. The report job
+    # ledger keys `report_request` on the idempotency key alone
+    # (`reporting_jobs/ledger.py:728`), so tenant B is currently refused 409
+    # `idempotency_conflict` -- "Idempotency-Key was reused with different idea
+    # evidence content", which is untrue: B sent identical content and reused
+    # nothing. That is the same defect in a second, larger store serving every
+    # report route, filed as #350. Asserting the 409 here would pin a
+    # defect's current behaviour as though it were the contract.

@@ -231,7 +231,36 @@ def test_offline_validation_rejects_wrong_review_value_types():
     )
 
 
-@pytest.mark.parametrize("control", sorted(_MERGEABILITY_EXPECTED_KEYS))
+#: Named here rather than imported, deliberately. The parameterisation used to
+#: derive from `_MERGEABILITY_EXPECTED_KEYS`, which meant deleting a control from
+#: that tuple removed its production comparison AND both of its test cases at
+#: once -- the suite stayed green on 19 tests while the control silently stopped
+#: being compared. Deriving a check from the authority is right when the check
+#: asks "does this conform to the authority"; it is wrong when the check asks
+#: "is the authority still complete", because then the authority is the thing
+#: under test and cannot also be the oracle.
+REQUIRED_MERGEABILITY_CONTROLS = (
+    "allow_fork_syncing",
+    "block_creations",
+    "lock_branch",
+    "required_signatures",
+)
+
+
+def test_the_checker_still_requires_every_mergeability_control() -> None:
+    """The independent assertion the parameterisation cannot make for itself.
+
+    `lock_branch` makes `main` read-only and `required_signatures` fails every
+    unsigned merge, so a control quietly dropped from the checker's list is a
+    merge-blocking configuration nobody would be told about.
+    """
+    assert set(_MERGEABILITY_EXPECTED_KEYS) == set(REQUIRED_MERGEABILITY_CONTROLS), (
+        "the checker's mergeability control list no longer matches the four this "
+        "repository requires; a control removed here is a control never compared"
+    )
+
+
+@pytest.mark.parametrize("control", REQUIRED_MERGEABILITY_CONTROLS)
 def test_each_mergeability_control_is_actually_compared(control: str) -> None:
     """Drift in any one of the four must be reported, naming that control.
 
@@ -257,7 +286,7 @@ def test_each_mergeability_control_is_actually_compared(control: str) -> None:
     )
 
 
-@pytest.mark.parametrize("control", sorted(_MERGEABILITY_EXPECTED_KEYS))
+@pytest.mark.parametrize("control", REQUIRED_MERGEABILITY_CONTROLS)
 def test_a_missing_mergeability_control_is_not_read_as_matching(control: str) -> None:
     """An absent block must not be silently equal to the declared value.
 

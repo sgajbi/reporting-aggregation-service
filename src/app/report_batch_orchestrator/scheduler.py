@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import date
 from typing import Any, Protocol
@@ -598,6 +599,40 @@ def _tenant_attribution_is_a_stamp(schedule: BatchScheduleDefinition) -> bool:
     return schedule.selector_mode == "all_active_portfolios"
 
 
+#: Internal reasons for dropping a candidate on tenant evidence. Deliberately
+#: two values, not one. Externally a refused candidate is simply not scheduled,
+#: so a caller cannot tell "not yours" from "not there" -- but an operator
+#: reading the drop log must, because they are different failures: a mismatch is
+#: a portfolio genuinely owned by someone else, while an absent projection means
+#: Core answered without the field this decision depends on.
+SOURCE_TENANT_MISMATCH = "source_tenant_mismatch"
+SOURCE_TENANT_ABSENT = "source_tenant_absent"
+
+
+def _projected_tenant(
+    payload: Mapping[str, Any], *, expected_tenant_id: str
+) -> tuple[str | None, str | None]:
+    """Return Core's projected tenant, or `(None, reason)` refusing the candidate.
+
+    Three states, not two. `lotus-core#1094` made `tenant_id` a required,
+    source-owned field on `PortfolioRecord`, so its absence is now a real signal
+    rather than the permanent condition it used to be -- and absence must refuse
+    rather than fall back, because falling back is precisely the defect: the
+    scheduler stamping its own configuration onto a candidate and presenting
+    configuration as evidence of ownership.
+
+    A match returns Core's value rather than the caller's. They are equal here by
+    construction, but taking it from the payload means the tenant on the
+    candidate came from the source that owns it.
+    """
+    projected = str(payload.get("tenant_id") or "").strip()
+    if not projected:
+        return None, SOURCE_TENANT_ABSENT
+    if projected != expected_tenant_id:
+        return None, SOURCE_TENANT_MISMATCH
+    return projected, None
+
+
 class ReportBatchScheduler:
     def __init__(
         self,
@@ -799,10 +834,16 @@ class ReportBatchScheduler:
             if str(payload.get("portfolio_id") or "") != portfolio_id:
                 dropped.append((status_code, "source_identity_mismatch"))
                 continue
+            projected_tenant, tenant_refusal = _projected_tenant(
+                payload, expected_tenant_id=tenant_id
+            )
+            if projected_tenant is None:
+                dropped.append((status_code, tenant_refusal or SOURCE_TENANT_ABSENT))
+                continue
             candidates.append(
                 PortfolioBatchCandidate(
                     portfolio_id=portfolio_id,
-                    tenant_id=tenant_id,
+                    tenant_id=projected_tenant,
                     region=region,
                     active=str(payload.get("status") or "").lower() == "active",
                     selected=True,
@@ -835,11 +876,17 @@ class ReportBatchScheduler:
             if str(payload.get("portfolio_id") or "") != portfolio_id:
                 dropped.append((status_code, "source_identity_mismatch"))
                 continue
+            projected_tenant, tenant_refusal = _projected_tenant(
+                payload, expected_tenant_id=tenant_id
+            )
+            if projected_tenant is None:
+                dropped.append((status_code, tenant_refusal or SOURCE_TENANT_ABSENT))
+                continue
             entry = manifest_by_id[portfolio_id]
             candidates.append(
                 _candidate_from_portfolio_payload(
                     payload,
-                    tenant_id=tenant_id,
+                    tenant_id=projected_tenant,
                     region=region,
                     selected=True,
                     source_system=entry.source_system,

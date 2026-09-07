@@ -45,6 +45,7 @@ from app.reporting_jobs.models import ReportCallerContext
 
 _INSERT = """
 INSERT INTO idea_evidence_intake (
+    tenant_id,
     idempotency_key,
     intake_id,
     payload_fingerprint,
@@ -62,7 +63,7 @@ INSERT INTO idea_evidence_intake (
     correlation_id,
     trace_id
 )
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 """
 
 
@@ -97,6 +98,7 @@ class PostgresIdeaEvidenceIntakeLedger:
         self,
         request: IdeaEvidencePackIntakeRequest,
         *,
+        tenant_id: str,
         idempotency_key: str,
         accepted_at_utc: datetime | None = None,
         correlation_id: str | None = None,
@@ -104,7 +106,7 @@ class PostgresIdeaEvidenceIntakeLedger:
         caller_context: ReportCallerContext | None = None,
     ) -> IdeaEvidencePackIntakeResponse:
         payload_fingerprint = payload_fingerprint_of(request)
-        existing = self._get_record(idempotency_key)
+        existing = self._get_record(tenant_id, idempotency_key)
         if existing:
             if existing.payload_fingerprint != payload_fingerprint:
                 raise IdeaEvidenceIntakeConflictError("idea evidence intake payload changed")
@@ -112,6 +114,7 @@ class PostgresIdeaEvidenceIntakeLedger:
 
         record = build_intake_record(
             request,
+            tenant_id=tenant_id,
             idempotency_key=idempotency_key,
             payload_fingerprint=payload_fingerprint,
             accepted_at_utc=accepted_at_utc,
@@ -125,32 +128,35 @@ class PostgresIdeaEvidenceIntakeLedger:
             trace_id=trace_id,
         ).response
 
-    def has_record(self, idempotency_key: str) -> bool:
+    def has_record(self, *, tenant_id: str, idempotency_key: str) -> bool:
         """Whether this ledger held a prior intake under that key.
 
         Read before `accept()` stores anything, so that a legacy replay nothing
         validated can be refused without the refused attempt becoming the
         history that excuses its retry (report#334).
         """
-        return self._get_record(idempotency_key) is not None
+        return self._get_record(tenant_id, idempotency_key) is not None
 
-    def snapshot(self) -> Mapping[str, IdeaEvidenceIntakeRecord]:
+    def snapshot(self) -> Mapping[tuple[str, str], IdeaEvidenceIntakeRecord]:
         with self._connect() as connection:
             rows = connection.execute(
                 """
                 SELECT * FROM idea_evidence_intake
-                ORDER BY created_at_utc, idempotency_key
+                ORDER BY created_at_utc, tenant_id, idempotency_key
                 """
             ).fetchall()
         return MappingProxyType(
-            {str(row["idempotency_key"]): _record_from_row(row) for row in rows}
+            {
+                (str(row["tenant_id"]), str(row["idempotency_key"])): _record_from_row(row)
+                for row in rows
+            }
         )
 
-    def _get_record(self, idempotency_key: str) -> IdeaEvidenceIntakeRecord | None:
+    def _get_record(self, tenant_id: str, idempotency_key: str) -> IdeaEvidenceIntakeRecord | None:
         with self._connect() as connection:
             row = connection.execute(
-                "SELECT * FROM idea_evidence_intake WHERE idempotency_key = %s",
-                (idempotency_key,),
+                "SELECT * FROM idea_evidence_intake WHERE tenant_id = %s AND idempotency_key = %s",
+                (tenant_id, idempotency_key),
             ).fetchone()
         return _record_from_row(row) if row else None
 
@@ -167,6 +173,7 @@ class PostgresIdeaEvidenceIntakeLedger:
                 connection.execute(
                     _INSERT,
                     (
+                        record.tenant_id,
                         record.idempotency_key,
                         record.intake_id,
                         record.payload_fingerprint,
@@ -190,7 +197,7 @@ class PostgresIdeaEvidenceIntakeLedger:
             # an identical payload replays, a different one conflicts. Same
             # resolution the SQLite ledger makes on IntegrityError, so a
             # concurrent replay behaves identically on either engine.
-            existing = self._get_record(record.idempotency_key)
+            existing = self._get_record(record.tenant_id, record.idempotency_key)
             if existing and existing.payload_fingerprint == record.payload_fingerprint:
                 return existing
             raise IdeaEvidenceIntakeConflictError("idea evidence intake payload changed") from exc
@@ -207,6 +214,7 @@ def _record_from_row(row: Mapping[str, Any]) -> IdeaEvidenceIntakeRecord:
     """
     return IdeaEvidenceIntakeRecord(
         intake_id=str(row["intake_id"]),
+        tenant_id=str(row["tenant_id"]),
         idempotency_key=str(row["idempotency_key"]),
         payload_fingerprint=str(row["payload_fingerprint"]),
         response=IdeaEvidencePackIntakeResponse.model_validate(row["response_json"]),

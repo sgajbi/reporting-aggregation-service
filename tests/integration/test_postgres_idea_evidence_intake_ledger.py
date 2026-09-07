@@ -113,12 +113,13 @@ def test_an_accepted_intake_round_trips_through_postgresql(
 
     accepted = postgres_ledger.accept(
         _request(suffix),
+        tenant_id="tenant-sg",
         idempotency_key=key,
         caller_context=_caller_context(suffix),
         correlation_id=f"corr-intake-{suffix}",
     )
 
-    stored = postgres_ledger.snapshot()[key]
+    stored = postgres_ledger.snapshot()[("tenant-sg", key)]
     assert stored.response == accepted
     assert stored.caller_context["tenant_id"] == "tenant-sg"
     assert stored.accepted_at_utc == accepted.accepted_at_utc
@@ -136,9 +137,9 @@ def test_has_record_answers_before_and_after_acceptance(
     suffix = uuid4().hex[:12]
     key = f"intake-{suffix}"
 
-    assert postgres_ledger.has_record(key) is False
-    postgres_ledger.accept(_request(suffix), idempotency_key=key)
-    assert postgres_ledger.has_record(key) is True
+    assert postgres_ledger.has_record(tenant_id="tenant-sg", idempotency_key=key) is False
+    postgres_ledger.accept(_request(suffix), tenant_id="tenant-sg", idempotency_key=key)
+    assert postgres_ledger.has_record(tenant_id="tenant-sg", idempotency_key=key) is True
 
 
 def test_an_identical_replay_returns_the_original_receipt(
@@ -147,8 +148,8 @@ def test_an_identical_replay_returns_the_original_receipt(
     suffix = uuid4().hex[:12]
     key = f"intake-{suffix}"
 
-    first = postgres_ledger.accept(_request(suffix), idempotency_key=key)
-    replayed = postgres_ledger.accept(_request(suffix), idempotency_key=key)
+    first = postgres_ledger.accept(_request(suffix), tenant_id="tenant-sg", idempotency_key=key)
+    replayed = postgres_ledger.accept(_request(suffix), tenant_id="tenant-sg", idempotency_key=key)
 
     assert replayed == first
 
@@ -161,11 +162,12 @@ def test_a_changed_payload_under_the_same_key_conflicts(
     suffix = uuid4().hex[:12]
     key = f"intake-{suffix}"
 
-    postgres_ledger.accept(_request(suffix), idempotency_key=key)
+    postgres_ledger.accept(_request(suffix), tenant_id="tenant-sg", idempotency_key=key)
 
     with pytest.raises(IdeaEvidenceIntakeConflictError):
         postgres_ledger.accept(
             _request(suffix, candidate_id="icand_substituted"),
+            tenant_id="tenant-sg",
             idempotency_key=key,
         )
 
@@ -197,20 +199,28 @@ def test_both_engines_produce_the_same_receipt_and_the_same_verdicts(
         payload.pop("accepted_at_utc", None)
         return payload
 
-    postgres_first = postgres_ledger.accept(_request(suffix), idempotency_key=key)
-    sqlite_first = sqlite_ledger.accept(_request(suffix), idempotency_key=key)
+    postgres_first = postgres_ledger.accept(
+        _request(suffix), tenant_id="tenant-sg", idempotency_key=key
+    )
+    sqlite_first = sqlite_ledger.accept(
+        _request(suffix), tenant_id="tenant-sg", idempotency_key=key
+    )
     assert _comparable(postgres_first) == _comparable(sqlite_first)
 
-    postgres_replay = postgres_ledger.accept(_request(suffix), idempotency_key=key)
-    sqlite_replay = sqlite_ledger.accept(_request(suffix), idempotency_key=key)
+    postgres_replay = postgres_ledger.accept(
+        _request(suffix), tenant_id="tenant-sg", idempotency_key=key
+    )
+    sqlite_replay = sqlite_ledger.accept(
+        _request(suffix), tenant_id="tenant-sg", idempotency_key=key
+    )
     assert postgres_replay == postgres_first
     assert sqlite_replay == sqlite_first
 
     changed = _request(suffix, candidate_id="icand_substituted")
     with pytest.raises(IdeaEvidenceIntakeConflictError):
-        postgres_ledger.accept(changed, idempotency_key=key)
+        postgres_ledger.accept(changed, tenant_id="tenant-sg", idempotency_key=key)
     with pytest.raises(IdeaEvidenceIntakeConflictError):
-        sqlite_ledger.accept(changed, idempotency_key=key)
+        sqlite_ledger.accept(changed, tenant_id="tenant-sg", idempotency_key=key)
 
 
 def test_the_two_engines_agree_on_the_payload_fingerprint(
@@ -227,12 +237,12 @@ def test_the_two_engines_agree_on_the_payload_fingerprint(
     key = f"intake-{suffix}"
     sqlite_ledger = IdeaEvidenceIntakeLedger(tmp_path / "intake.sqlite3")
 
-    postgres_ledger.accept(_request(suffix), idempotency_key=key)
-    sqlite_ledger.accept(_request(suffix), idempotency_key=key)
+    postgres_ledger.accept(_request(suffix), tenant_id="tenant-sg", idempotency_key=key)
+    sqlite_ledger.accept(_request(suffix), tenant_id="tenant-sg", idempotency_key=key)
 
     assert (
-        postgres_ledger.snapshot()[key].payload_fingerprint
-        == sqlite_ledger.snapshot()[key].payload_fingerprint
+        postgres_ledger.snapshot()[("tenant-sg", key)].payload_fingerprint
+        == sqlite_ledger.snapshot()[("tenant-sg", key)].payload_fingerprint
     )
 
 
@@ -252,6 +262,7 @@ def test_a_lost_insert_race_with_an_identical_payload_replays(
     request = _request(suffix)
     record = build_intake_record(
         request,
+        tenant_id="tenant-sg",
         idempotency_key=key,
         payload_fingerprint=payload_fingerprint_of(request),
     )
@@ -278,11 +289,12 @@ def test_a_lost_insert_race_with_a_different_payload_conflicts(
     suffix = uuid4().hex[:12]
     key = f"intake-{suffix}"
     first = _request(suffix)
-    postgres_ledger.accept(first, idempotency_key=key)
+    postgres_ledger.accept(first, tenant_id="tenant-sg", idempotency_key=key)
 
     substituted = _request(suffix, candidate_id="icand_substituted")
     conflicting = build_intake_record(
         substituted,
+        tenant_id="tenant-sg",
         idempotency_key=key,
         payload_fingerprint=payload_fingerprint_of(substituted),
     )
@@ -316,7 +328,10 @@ def test_a_supplied_connection_provider_is_not_closed_by_the_ledger() -> None:
         borrowed = PostgresIdeaEvidenceIntakeLedger(connection_provider=provider)
         borrowed.close()
         # Still usable: closing a borrowed provider would have broken this.
-        assert borrowed.has_record(f"absent-{uuid4().hex[:8]}") is False
+        assert (
+            borrowed.has_record(tenant_id="tenant-sg", idempotency_key=f"absent-{uuid4().hex[:8]}")
+            is False
+        )
     finally:
         provider.close()
 
@@ -326,7 +341,7 @@ def test_a_ledger_that_owns_its_provider_closes_it() -> None:
     owned.close()
 
     with pytest.raises(Exception):
-        owned.has_record("any-key")
+        owned.has_record(tenant_id="tenant-sg", idempotency_key="any-key")
 
 
 def test_a_naive_acceptance_instant_means_utc_on_both_engines(
@@ -346,14 +361,16 @@ def test_a_naive_acceptance_instant_means_utc_on_both_engines(
     naive = datetime(2026, 6, 24, 8, 15)
     assert naive.tzinfo is None
 
-    accepted = postgres_ledger.accept(_request(suffix), idempotency_key=key, accepted_at_utc=naive)
+    accepted = postgres_ledger.accept(
+        _request(suffix), tenant_id="tenant-sg", idempotency_key=key, accepted_at_utc=naive
+    )
     sqlite_ledger = IdeaEvidenceIntakeLedger(tmp_path / "intake.sqlite3")
     sqlite_accepted = sqlite_ledger.accept(
-        _request(suffix), idempotency_key=key, accepted_at_utc=naive
+        _request(suffix), tenant_id="tenant-sg", idempotency_key=key, accepted_at_utc=naive
     )
 
     expected = naive.replace(tzinfo=UTC)
     assert accepted.accepted_at_utc == expected
     assert sqlite_accepted.accepted_at_utc == expected
-    assert postgres_ledger.snapshot()[key].accepted_at_utc == expected
-    assert sqlite_ledger.snapshot()[key].accepted_at_utc == expected
+    assert postgres_ledger.snapshot()[("tenant-sg", key)].accepted_at_utc == expected
+    assert sqlite_ledger.snapshot()[("tenant-sg", key)].accepted_at_utc == expected

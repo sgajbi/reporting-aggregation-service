@@ -49,6 +49,12 @@ class IdeaEvidenceIntakeConflictError(ValueError):
 
 @dataclass(frozen=True)
 class IdeaEvidenceIntakeRecord:
+    #: The admitted tenant, which is half of this record's identity. An
+    #: idempotency key is a value the *caller* chooses to name its own retry,
+    #: so it is only unique within a caller. Keying on it alone made one
+    #: tenant's choice of string constrain every other tenant's, and let a
+    #: lookup return a record belonging to someone else (report#344).
+    tenant_id: str
     intake_id: str
     idempotency_key: str
     payload_fingerprint: str
@@ -65,12 +71,19 @@ class IdeaEvidenceIntakePort(Protocol):
     legacy replay that no prior intake validated, and that question must be
     answerable before `accept()` stores anything. A backend that cannot answer
     it cannot host this route.
+
+    `tenant_id` is a required argument rather than something read out of the
+    optional `caller_context`. An authority that a backend may or may not find
+    is not an authority: making it a parameter means a ledger cannot be called
+    without one, and a caller cannot supply it inside the business payload
+    (report#344).
     """
 
     def accept(
         self,
         request: IdeaEvidencePackIntakeRequest,
         *,
+        tenant_id: str,
         idempotency_key: str,
         accepted_at_utc: datetime | None = None,
         correlation_id: str | None = None,
@@ -78,9 +91,9 @@ class IdeaEvidenceIntakePort(Protocol):
         caller_context: ReportCallerContext | None = None,
     ) -> IdeaEvidencePackIntakeResponse: ...
 
-    def has_record(self, idempotency_key: str) -> bool: ...
+    def has_record(self, *, tenant_id: str, idempotency_key: str) -> bool: ...
 
-    def snapshot(self) -> Mapping[str, IdeaEvidenceIntakeRecord]: ...
+    def snapshot(self) -> Mapping[tuple[str, str], IdeaEvidenceIntakeRecord]: ...
 
 
 def as_utc_instant(value: datetime) -> datetime:
@@ -101,6 +114,7 @@ def as_utc_instant(value: datetime) -> datetime:
 def build_intake_record(
     request: IdeaEvidencePackIntakeRequest,
     *,
+    tenant_id: str,
     idempotency_key: str,
     payload_fingerprint: str,
     accepted_at_utc: datetime | None = None,
@@ -114,7 +128,7 @@ def build_intake_record(
     is how the two would drift into disagreeing about the same intake.
     """
     accepted_at = as_utc_instant(accepted_at_utc) if accepted_at_utc else datetime.now(UTC)
-    intake_id = _intake_id(idempotency_key, payload_fingerprint)
+    intake_id = _intake_id(tenant_id, idempotency_key, payload_fingerprint)
     response = IdeaEvidencePackIntakeResponse(
         intake_id=intake_id,
         intake_status="accepted",
@@ -136,6 +150,7 @@ def build_intake_record(
         correlation_id=correlation_id,
     )
     return IdeaEvidenceIntakeRecord(
+        tenant_id=tenant_id,
         intake_id=intake_id,
         idempotency_key=idempotency_key,
         payload_fingerprint=payload_fingerprint,
@@ -149,7 +164,7 @@ def build_intake_record(
 class IdeaEvidenceIntakeLedger:
     def __init__(self, database_path: Path | str | None = None) -> None:
         self._database_path = Path(database_path) if database_path is not None else None
-        self._records_by_key: dict[str, IdeaEvidenceIntakeRecord] = {}
+        self._records_by_key: dict[tuple[str, str], IdeaEvidenceIntakeRecord] = {}
         if self._database_path is not None:
             self._ensure_schema()
 
@@ -157,6 +172,7 @@ class IdeaEvidenceIntakeLedger:
         self,
         request: IdeaEvidencePackIntakeRequest,
         *,
+        tenant_id: str,
         idempotency_key: str,
         accepted_at_utc: datetime | None = None,
         correlation_id: str | None = None,
@@ -164,7 +180,7 @@ class IdeaEvidenceIntakeLedger:
         caller_context: ReportCallerContext | None = None,
     ) -> IdeaEvidencePackIntakeResponse:
         payload_fingerprint = payload_fingerprint_of(request)
-        existing = self._get_record(idempotency_key)
+        existing = self._get_record(tenant_id, idempotency_key)
         if existing:
             if existing.payload_fingerprint != payload_fingerprint:
                 raise IdeaEvidenceIntakeConflictError("idea evidence intake payload changed")
@@ -172,6 +188,7 @@ class IdeaEvidenceIntakeLedger:
 
         record = build_intake_record(
             request,
+            tenant_id=tenant_id,
             idempotency_key=idempotency_key,
             payload_fingerprint=payload_fingerprint,
             accepted_at_utc=accepted_at_utc,
@@ -186,31 +203,49 @@ class IdeaEvidenceIntakeLedger:
         )
         return stored_record.response
 
-    def has_record(self, idempotency_key: str) -> bool:
-        """Whether this ledger holds a prior intake under that key.
+    def has_record(self, *, tenant_id: str, idempotency_key: str) -> bool:
+        """Whether this ledger holds a prior intake for that tenant and key.
 
         Used to establish that a legacy replay was genuinely validated against
         a stored record. An emptied or restored-from-elsewhere ledger accepts a
         request as new, so its acceptance proves nothing about a replay.
-        """
-        return self._get_record(idempotency_key) is not None
 
-    def snapshot(self) -> Mapping[str, IdeaEvidenceIntakeRecord]:
+        Scoped by tenant because this gates a refusal. Unscoped, one tenant's
+        history satisfied another tenant's check and the fail-closed refusal
+        added by report#334 was skipped on evidence the caller had no
+        relationship to (report#344).
+        """
+        return self._get_record(tenant_id, idempotency_key) is not None
+
+    def snapshot(self) -> Mapping[tuple[str, str], IdeaEvidenceIntakeRecord]:
+        """Every record, keyed by its full identity.
+
+        Keyed by ``(tenant_id, idempotency_key)`` rather than the key alone, so
+        a reader cannot address a record without saying whose it is.
+        """
         if self._database_path is None:
             return MappingProxyType(dict(self._records_by_key))
         with self._connect() as connection:
             rows = connection.execute(
-                "SELECT * FROM idea_evidence_intake ORDER BY created_at_utc, idempotency_key"
+                """
+                SELECT * FROM idea_evidence_intake
+                ORDER BY created_at_utc, tenant_id, idempotency_key
+                """
             ).fetchall()
-        return MappingProxyType({row["idempotency_key"]: _record_from_row(row) for row in rows})
+        return MappingProxyType(
+            {
+                (str(row["tenant_id"]), str(row["idempotency_key"])): _record_from_row(row)
+                for row in rows
+            }
+        )
 
-    def _get_record(self, idempotency_key: str) -> IdeaEvidenceIntakeRecord | None:
+    def _get_record(self, tenant_id: str, idempotency_key: str) -> IdeaEvidenceIntakeRecord | None:
         if self._database_path is None:
-            return self._records_by_key.get(idempotency_key)
+            return self._records_by_key.get((tenant_id, idempotency_key))
         with self._connect() as connection:
             row = connection.execute(
-                "SELECT * FROM idea_evidence_intake WHERE idempotency_key = ?",
-                (idempotency_key,),
+                "SELECT * FROM idea_evidence_intake WHERE tenant_id = ? AND idempotency_key = ?",
+                (tenant_id, idempotency_key),
             ).fetchone()
         return _record_from_row(row) if row else None
 
@@ -223,7 +258,7 @@ class IdeaEvidenceIntakeLedger:
         trace_id: str | None,
     ) -> IdeaEvidenceIntakeRecord:
         if self._database_path is None:
-            self._records_by_key[record.idempotency_key] = record
+            self._records_by_key[(record.tenant_id, record.idempotency_key)] = record
             return record
 
         with self._connect() as connection:
@@ -231,6 +266,7 @@ class IdeaEvidenceIntakeLedger:
                 connection.execute(
                     """
                     INSERT INTO idea_evidence_intake (
+                        tenant_id,
                         idempotency_key,
                         intake_id,
                         payload_fingerprint,
@@ -248,9 +284,10 @@ class IdeaEvidenceIntakeLedger:
                         correlation_id,
                         trace_id
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
+                        record.tenant_id,
                         record.idempotency_key,
                         record.intake_id,
                         record.payload_fingerprint,
@@ -270,7 +307,7 @@ class IdeaEvidenceIntakeLedger:
                     ),
                 )
             except sqlite3.IntegrityError as exc:
-                existing = self._get_record(record.idempotency_key)
+                existing = self._get_record(record.tenant_id, record.idempotency_key)
                 if existing and existing.payload_fingerprint == record.payload_fingerprint:
                     return existing
                 raise IdeaEvidenceIntakeConflictError(
@@ -299,7 +336,8 @@ class IdeaEvidenceIntakeLedger:
             connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS idea_evidence_intake (
-                    idempotency_key TEXT PRIMARY KEY,
+                    tenant_id TEXT NOT NULL,
+                    idempotency_key TEXT NOT NULL,
                     intake_id TEXT NOT NULL,
                     payload_fingerprint TEXT NOT NULL,
                     response_json TEXT NOT NULL,
@@ -314,7 +352,8 @@ class IdeaEvidenceIntakeLedger:
                     accepted_at_utc TEXT NOT NULL,
                     created_at_utc TEXT NOT NULL,
                     correlation_id TEXT,
-                    trace_id TEXT
+                    trace_id TEXT,
+                    PRIMARY KEY (tenant_id, idempotency_key)
                 )
                 """
             )
@@ -348,6 +387,7 @@ def _record_from_row(row: sqlite3.Row) -> IdeaEvidenceIntakeRecord:
     response = IdeaEvidencePackIntakeResponse.model_validate_json(row["response_json"])
     return IdeaEvidenceIntakeRecord(
         intake_id=str(row["intake_id"]),
+        tenant_id=str(row["tenant_id"]),
         idempotency_key=str(row["idempotency_key"]),
         payload_fingerprint=str(row["payload_fingerprint"]),
         response=response,
@@ -367,8 +407,27 @@ def _dt_from_text(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(UTC)
 
 
-def _intake_id(idempotency_key: str, payload_fingerprint: str) -> str:
-    digest = hashlib.sha256(f"{idempotency_key}:{payload_fingerprint}".encode("utf-8")).hexdigest()
+def _intake_id(tenant_id: str, idempotency_key: str, payload_fingerprint: str) -> str:
+    """The intake identity, derived from the tenant as well as the key.
+
+    Length-prefixed rather than ``:``-joined. The idempotency key is caller
+    supplied and may contain any character, so a plain separator makes the
+    preimage ambiguous: ``("a:b", "c")`` and ``("a", "b:c")`` produce the same
+    string and therefore the same identity. Adding the tenant to a ``:``-joined
+    preimage would have reintroduced exactly the cross-tenant collision this
+    change exists to remove -- one tenant could choose a key that made its
+    intake collide with another's (report#344).
+
+    Prefixing each component with its length makes the encoding injective, so
+    distinct triples cannot share a digest.
+
+    Records written before this change retain their stored ``intake_id``; this
+    derivation applies to intakes accepted from here on.
+    """
+
+    parts = (tenant_id, idempotency_key, payload_fingerprint)
+    preimage = "".join(f"{len(part)}:{part}" for part in parts)
+    digest = hashlib.sha256(preimage.encode("utf-8")).hexdigest()
     return "idea_intake_" + digest[:24]
 
 

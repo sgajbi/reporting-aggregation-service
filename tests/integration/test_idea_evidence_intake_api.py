@@ -136,8 +136,11 @@ def test_idea_evidence_intake_route_conflicts_after_fresh_ledger_restart(tmp_pat
     assert replay.status_code == 409
     assert replay.json()["detail"]["code"] == "idea_evidence_intake_conflict"
     records = restarted_ledger.snapshot()
-    assert records["idea-report-intake-restart"].caller_context["triggered_by"] == "advisor-123"
-    assert records["idea-report-intake-restart"].caller_context["trace_id"] == (
+    assert (
+        records[("tenant-sg", "idea-report-intake-restart")].caller_context["triggered_by"]
+        == "advisor-123"
+    )
+    assert records[("tenant-sg", "idea-report-intake-restart")].caller_context["trace_id"] == (
         "trace-idea-report-intake"
     )
 

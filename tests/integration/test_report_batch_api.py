@@ -292,6 +292,10 @@ class _PortfolioSource:
     async def get_portfolio_detail(self, portfolio_id, correlation_id=None):
         return 200, {
             "portfolio_id": portfolio_id,
+            # report#177: Core projects the owning tenant and the scheduler now
+            # requires it. A fake that omits it is a response shape Core no
+            # longer produces, so the candidate would be correctly refused.
+            "tenant_id": "tenant-sg",
             "status": "active",
         }
 

@@ -889,7 +889,10 @@ def _schedule_config(schedule_id: str) -> "BatchSchedulerConfig":
 
 class _SchedulerPortfolioSource:
     async def get_portfolio_detail(self, portfolio_id, correlation_id=None):
-        return 200, {"portfolio_id": portfolio_id, "status": "active"}
+        # report#177: Core projects the owning tenant and the scheduler refuses a
+        # candidate it cannot attribute. TENANT_A rather than a literal, so the
+        # fake cannot drift away from the tenant these schedules run under.
+        return 200, {"portfolio_id": portfolio_id, "tenant_id": TENANT_A, "status": "active"}
 
     async def list_portfolios(self, correlation_id=None):
         return 200, {"portfolios": [{"portfolio_id": SHARED_PORTFOLIO, "status": "active"}]}

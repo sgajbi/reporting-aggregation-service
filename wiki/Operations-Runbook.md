@@ -461,6 +461,19 @@ docker compose run --rm lotus-report python -m app.idea_evidence_intake.transfer
 if ($LASTEXITCODE -ne 0) { throw "Verification failed -- do not continue" }
 ```
 
+**Precondition: the PostgreSQL schema must already exist.** The transfer inserts into
+`idea_evidence_intake`; it does not create it. A deployment already running PostgreSQL for report
+jobs has the table, because constructing any PostgreSQL ledger adapter applies every migration in
+`migrations/`. A first-ever PostgreSQL bring-up does not, and the transfer then fails with
+
+```
+psycopg.errors.UndefinedTable: relation "idea_evidence_intake" does not exist
+```
+
+which names neither the missing step nor this procedure. If you see it, the schema was never
+migrated — bring the service up against the database once before transferring, rather than treating
+it as a transfer failure.
+
 Bash equivalent:
 
 ```bash

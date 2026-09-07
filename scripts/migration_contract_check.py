@@ -240,13 +240,22 @@ def run_ledger_schema_checks() -> int:
                       SELECT attnum
                       FROM pg_attribute
                       WHERE attrelid = 'report_request'::regclass
+                        AND attname = 'tenant_id'
+                  ),
+                  (
+                      SELECT attnum
+                      FROM pg_attribute
+                      WHERE attrelid = 'report_request'::regclass
                         AND attname = 'idempotency_key'
                   )
               ]::smallint[]
             """
         ).fetchall()
         if not unique_rows:
-            print("Ledger schema smoke failed: idempotency_key uniqueness is missing.")
+            # report#350: identity is (tenant_id, idempotency_key). Asserting the
+            # old single-column uniqueness would keep demanding the exact defect
+            # this gate is meant to prevent -- two tenants colliding on one key.
+            print("Ledger schema smoke failed: (tenant_id, idempotency_key) uniqueness is missing.")
             return 1
 
         batch_unique_rows = connection.execute(

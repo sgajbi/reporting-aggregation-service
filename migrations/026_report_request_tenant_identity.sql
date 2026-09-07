@@ -25,8 +25,13 @@
 ALTER TABLE report_request
     DROP CONSTRAINT IF EXISTS report_request_idempotency_key_key;
 
--- Named explicitly rather than left to the implicit constraint name, so a later
--- migration can find it. Partial-free and non-deferrable: two tenants holding
--- the same key must both be storable at the same instant.
-CREATE UNIQUE INDEX IF NOT EXISTS report_request_tenant_idempotency_key
-    ON report_request (tenant_id, idempotency_key);
+-- A named UNIQUE constraint rather than a bare index: identity is a contract,
+-- and `scripts/migration_contract_check.py` asserts it through pg_constraint.
+-- DROP-then-ADD rather than a DO block, because the migration runner splits
+-- statements on the semicolon and would tear a dollar-quoted body apart.
+ALTER TABLE report_request
+    DROP CONSTRAINT IF EXISTS report_request_tenant_idempotency_key;
+
+ALTER TABLE report_request
+    ADD CONSTRAINT report_request_tenant_idempotency_key
+    UNIQUE (tenant_id, idempotency_key);

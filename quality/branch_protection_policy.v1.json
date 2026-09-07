@@ -69,12 +69,6 @@
       "tracked_as": "lotus-gateway#740, against the canonical implementation; this table adopts the binding declaration once the canonical checker compares it"
     },
     {
-      "limitation": "four protection controls the API returns are not compared at all",
-      "detail": "lock_branch, required_signatures, block_creations and allow_fork_syncing are absent from the checker's hard-coded scalar allowlist. All four read {\"enabled\": false} on this branch today; enabling lock_branch or required_signatures would change whether merges are possible while the comparison still reported a clean match.",
-      "why_not_fixed_here": "the allowlist is hard-coded in the canonical checker, so declaring these fields in this table would not cause them to be compared - an unknown expected key is never read. Editing the lifted checker would fork an estate-wide control.",
-      "tracked_as": "lotus-gateway#742, against the canonical implementation, companion to #740"
-    },
-    {
       "limitation": "only the zero-approval exception is bound to the weakness it documents",
       "detail": "validate_policy_document requires the zero-approval exception while required_approving_review_count is 0, but no invariant binds the omitted-gate-context exception to the omission. Deleting that exception while the context stays absent passes both offline validation and a matching live comparison, so the reason, compensating controls and retirement condition can be lost silently.",
       "why_not_fixed_here": "the invariant lives in the canonical checker's offline validation; adding a Report-only rule would fork an estate-wide control and diverge this repository from the canonical parity check.",

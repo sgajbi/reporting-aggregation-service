@@ -50,14 +50,27 @@ EXPECTED_INTAKE_COLUMNS = {
     "payload_fingerprint": ("text", "NO"),
     "response_json": ("jsonb", "NO"),
     "caller_context_json": ("jsonb", "NO"),
+    "tenant_id": ("text", "NO"),
     "accepted_at_utc": ("timestamp with time zone", "NO"),
     "created_at_utc": ("timestamp with time zone", "NO"),
     "correlation_id": ("text", "YES"),
     "trace_id": ("text", "YES"),
 }
 EXPECTED_INTAKE_INDEXES = {
-    "idea_evidence_intake_pkey",
-    "idx_idea_evidence_intake_source",
+    # report#344 moved the admitted tenant into the intake identity, and the
+    # names changed with it rather than the definitions changing underneath the
+    # old names. `apply_report_schema_migrations` keeps no ledger and re-runs
+    # every file on every call, so a rename is what makes both statements
+    # no-ops on re-execution: DROP IF EXISTS on the old name fires once,
+    # CREATE IF NOT EXISTS on the new name fires once. Reusing a name would
+    # drop and rebuild the index at every startup.
+    #
+    # `idea_evidence_intake_pkey` is gone deliberately: uniqueness is now a
+    # unique index on (tenant_id, idempotency_key), because
+    # ADD CONSTRAINT ... PRIMARY KEY cannot be re-executed. Migration 025
+    # states that trade-off.
+    "idea_evidence_intake_tenant_identity",
+    "idx_idea_evidence_intake_tenant_source",
     "idx_idea_evidence_intake_created",
 }
 

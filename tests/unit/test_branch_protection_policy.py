@@ -8,6 +8,8 @@ while the configuration stays weak.
 
 import copy
 
+import pytest
+
 from scripts.check_branch_protection_policy import (
     _MERGEABILITY_EXPECTED_KEYS,
     compare_live_to_policy,
@@ -226,4 +228,50 @@ def test_offline_validation_rejects_wrong_review_value_types():
     assert any(
         "bypass_pull_request_allowances.users must be a list" in issue
         for issue in validate_policy_document(policy)
+    )
+
+
+@pytest.mark.parametrize("control", sorted(_MERGEABILITY_EXPECTED_KEYS))
+def test_each_mergeability_control_is_actually_compared(control: str) -> None:
+    """Drift in any one of the four must be reported, naming that control.
+
+    The matching-configuration test derives its live payload from the policy, so
+    it proves the two agree -- not that anything compares them. An
+    implementation that declared these four and quietly stopped comparing one
+    would leave that test green, which is precisely the shape of the defect this
+    adoption fixes: a control whose scope silently excludes what it claims to
+    cover.
+
+    Parameterised rather than a single case with one control flipped, because a
+    comparison could cover three of the four and a single case would only ever
+    exercise whichever one it picked.
+    """
+    policy = load_policy()
+    live = _live_matching_policy(policy)
+    live[control] = {"enabled": not policy["expected"][control]}
+
+    issues = compare_live_to_policy(policy, live)
+
+    assert any(issue.startswith(control) for issue in issues), (
+        f"flipping {control} produced no issue naming it: {issues}"
+    )
+
+
+@pytest.mark.parametrize("control", sorted(_MERGEABILITY_EXPECTED_KEYS))
+def test_a_missing_mergeability_control_is_not_read_as_matching(control: str) -> None:
+    """An absent block must not be silently equal to the declared value.
+
+    `lock_branch` and `required_signatures` decide whether `main` can be merged
+    to at all, so a live response that omits one is unknown rather than false.
+    Treating absent as a match is how the original allowlist reported clean
+    while measuring nothing -- the same reading, one level down.
+    """
+    policy = load_policy()
+    live = _live_matching_policy(policy)
+    del live[control]
+
+    issues = compare_live_to_policy(policy, live)
+
+    assert any(issue.startswith(control) for issue in issues), (
+        f"removing {control} produced no issue naming it: {issues}"
     )

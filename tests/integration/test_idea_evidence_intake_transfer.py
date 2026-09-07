@@ -17,8 +17,11 @@ transfer. The corruption test is what separates those two.
 
 from __future__ import annotations
 
+import json
 import os
+import sqlite3
 from datetime import UTC, datetime
+from pathlib import Path
 from uuid import uuid4
 
 import psycopg
@@ -348,3 +351,113 @@ def test_a_missing_file_is_still_refused_by_default(migrated_database_url, tmp_p
             sqlite_path=tmp_path / "never-created.sqlite3",
             database_url=migrated_database_url,
         )
+
+
+def _pre_344_sqlite_file(path: Path, *, caller_context: object) -> Path:
+    """A ledger file as it existed before report#344: no `tenant_id` column.
+
+    Built with the old DDL on purpose. A file produced by the current ledger
+    already carries the column, so a transfer test using one would never
+    exercise the path that lifts the tenant out of the stored caller context --
+    which is the only path a real cutover of retained data takes.
+    """
+
+    connection = sqlite3.connect(path)
+    try:
+        connection.execute(
+            """
+            CREATE TABLE idea_evidence_intake (
+                idempotency_key TEXT PRIMARY KEY, intake_id TEXT NOT NULL,
+                payload_fingerprint TEXT NOT NULL, response_json TEXT NOT NULL,
+                caller_context_json TEXT NOT NULL, report_evidence_pack_id TEXT NOT NULL,
+                conversion_intent_id TEXT NOT NULL, candidate_id TEXT NOT NULL,
+                evidence_packet_id TEXT NOT NULL, evidence_content_fingerprint TEXT NOT NULL,
+                producer TEXT NOT NULL, supportability_status TEXT NOT NULL,
+                accepted_at_utc TEXT NOT NULL, created_at_utc TEXT NOT NULL,
+                correlation_id TEXT, trace_id TEXT
+            )
+            """
+        )
+        connection.execute(
+            "INSERT INTO idea_evidence_intake VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (
+                "pre-344-key",
+                "idea_intake_pre_344",
+                "sha256:retained",
+                "{}",
+                json.dumps(caller_context) if isinstance(caller_context, dict) else caller_context,
+                "irep_001",
+                "icnv_001",
+                "icand_001",
+                "ievp_001",
+                "sha256:evidence",
+                "lotus-idea",
+                "not_certified",
+                "2026-06-24T08:30:00Z",
+                "2026-06-24T08:30:00Z",
+                None,
+                None,
+            ),
+        )
+        connection.commit()
+    finally:
+        connection.close()
+    return path
+
+
+def test_a_pre_344_row_carries_the_tenant_out_of_its_caller_context(tmp_path) -> None:
+    """The retained-data case a real cutover actually meets.
+
+    The tenant was stored in `caller_context_json` and read by nothing. The
+    transfer lifts it so the row satisfies the target's tenant-scoped key.
+    """
+
+    path = _pre_344_sqlite_file(
+        tmp_path / "pre-344.sqlite3", caller_context={"tenant_id": "tenant-legacy"}
+    )
+
+    rows = list(_read_source_rows(path))
+
+    assert len(rows) == 1
+    assert rows[0]["tenant_id"] == "tenant-legacy"
+    assert rows[0]["idempotency_key"] == "pre-344-key"
+
+
+def test_a_pre_344_row_without_a_tenant_is_refused_by_name(tmp_path) -> None:
+    """Not defaulted and not skipped.
+
+    A defaulted tenant would make one tenant the owner of another's retained
+    receipt. The refusal names the key so an operator can attribute it from the
+    surrounding evidence.
+    """
+
+    path = _pre_344_sqlite_file(
+        tmp_path / "pre-344.sqlite3", caller_context={"triggered_by": "advisor-123"}
+    )
+
+    with pytest.raises(IntakeTransferError) as exc:
+        list(_read_source_rows(path))
+
+    assert "pre-344-key" in str(exc.value)
+    assert "will not default or discard" in str(exc.value)
+
+
+def test_a_pre_344_row_with_unreadable_context_is_refused_rather_than_skipped(tmp_path) -> None:
+    """Unparseable context is not the same as an absent tenant, and neither is
+    a reason to transfer the row unattributed."""
+
+    path = _pre_344_sqlite_file(tmp_path / "pre-344.sqlite3", caller_context="{not json")
+
+    with pytest.raises(IntakeTransferError) as exc:
+        list(_read_source_rows(path))
+
+    assert "not valid JSON" in str(exc.value)
+
+
+def test_a_blank_tenant_is_treated_as_absent(tmp_path) -> None:
+    """Whitespace is not attribution."""
+
+    path = _pre_344_sqlite_file(tmp_path / "pre-344.sqlite3", caller_context={"tenant_id": "   "})
+
+    with pytest.raises(IntakeTransferError):
+        list(_read_source_rows(path))

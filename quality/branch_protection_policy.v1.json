@@ -9,23 +9,15 @@
     "escalation": "unresolved disagreements escalate to the repository owner (sgajbi), who is the sole accepted collaborator"
   },
   "expected": {
-    "enforce_admins": true,
-    "required_linear_history": true,
-    "allow_force_pushes": false,
     "allow_deletions": false,
+    "allow_force_pushes": false,
+    "allow_fork_syncing": false,
+    "block_creations": false,
+    "codeowners_present": false,
+    "enforce_admins": true,
+    "lock_branch": false,
     "required_conversation_resolution": true,
-    "required_status_checks": {
-      "strict": true,
-      "contexts": [
-        "PR Merge Gate / Workflow Lint",
-        "PR Merge Gate / Lint Typecheck Security",
-        "PR Merge Gate / Tests (unit)",
-        "PR Merge Gate / Tests (integration)",
-        "PR Merge Gate / Tests (e2e)",
-        "PR Merge Gate / Coverage Gate (Combined)",
-        "PR Merge Gate / Validate Docker Build"
-      ]
-    },
+    "required_linear_history": true,
     "required_pull_request_reviews": {
       "present": true,
       "required_approving_review_count": 0,
@@ -38,8 +30,20 @@
         "apps": []
       }
     },
-    "restrictions_present": false,
-    "codeowners_present": false
+    "required_signatures": false,
+    "required_status_checks": {
+      "strict": true,
+      "contexts": [
+        "PR Merge Gate / Workflow Lint",
+        "PR Merge Gate / Lint Typecheck Security",
+        "PR Merge Gate / Tests (unit)",
+        "PR Merge Gate / Tests (integration)",
+        "PR Merge Gate / Tests (e2e)",
+        "PR Merge Gate / Coverage Gate (Combined)",
+        "PR Merge Gate / Validate Docker Build"
+      ]
+    },
+    "restrictions_present": false
   },
   "documented_exceptions": [
     {

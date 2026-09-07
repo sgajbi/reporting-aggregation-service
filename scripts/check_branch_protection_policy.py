@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -49,6 +50,18 @@ _BOOLEAN_REVIEW_KEYS = (
     "require_last_push_approval",
 )
 
+# Controls the branch-protection API returns that decide whether main can be
+# merged to at all. `lock_branch` makes the branch read-only; `required_signatures`
+# fails every unsigned merge; `block_creations` changes what may be created.
+# Absent from this list they were never compared, so an administrator could
+# enable any of them and the scheduled audit still reported a clean match.
+_MERGEABILITY_EXPECTED_KEYS = (
+    "lock_branch",
+    "required_signatures",
+    "block_creations",
+    "allow_fork_syncing",
+)
+
 _BOOLEAN_EXPECTED_KEYS = (
     "enforce_admins",
     "required_linear_history",
@@ -57,6 +70,7 @@ _BOOLEAN_EXPECTED_KEYS = (
     "required_conversation_resolution",
     "restrictions_present",
     "codeowners_present",
+    *_MERGEABILITY_EXPECTED_KEYS,
 )
 
 _REQUIRED_EXPECTED_KEYS = (
@@ -69,16 +83,74 @@ _REQUIRED_EXPECTED_KEYS = (
     "required_pull_request_reviews",
     "restrictions_present",
     "codeowners_present",
+    # REQUIRED, not optional. An undeclared control is an unmeasured one, and
+    # silence is precisely the defect this list closes: an adopter cannot fix it
+    # by declaring the field unless the checker reads it, and the checker must
+    # not pass a table that omits it.
+    *_MERGEABILITY_EXPECTED_KEYS,
 )
 
 
 def load_policy(path: Path = POLICY_PATH) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    policy: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+    return policy
+
+
+def detect_repository(repo_root: Path) -> str | None:
+    """Return the repository this checkout actually is, or None if unknowable.
+
+    Identity must be corroborated from OUTSIDE the policy document. The document
+    is the thing being validated, so trusting its own `repository` field lets a
+    lifted table point at the repository it was copied from: the checker then
+    reads someone else's protection, finds it matches, and passes. A sibling
+    that lifts the table and forgets to edit one field gets a green gate that
+    measured nothing about itself.
+
+    `GITHUB_REPOSITORY` is authoritative in Actions. Locally the origin remote
+    is the equivalent fact, and it is read rather than the directory name
+    because worktrees and clones are routinely named something else.
+    """
+    from_env = os.environ.get("GITHUB_REPOSITORY", "").strip()
+    if from_env:
+        return from_env
+
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(repo_root), "remote", "get-url", "origin"],
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, FileNotFoundError):
+        # No git binary is the same situation as no remote: identity cannot be
+        # corroborated from outside the document, so it is unknowable rather
+        # than an error to crash on. The caller already refuses on None.
+        return None
+    if result.returncode != 0:
+        return None
+    url = result.stdout.strip()
+    if not url:
+        return None
+    url = url.removesuffix(".git")
+    if url.startswith("git@"):
+        url = url.partition(":")[2]
+    parts = [part for part in url.replace("\\", "/").split("/") if part]
+    if len(parts) < 2:
+        return None
+    return f"{parts[-2]}/{parts[-1]}"
 
 
 def validate_policy_document(policy: dict[str, Any]) -> list[str]:
     """Offline shape check: the document must be complete enough to gate against."""
     issues: list[str] = []
+
+    # Present-but-blank is not a declaration. An empty identity field would pass
+    # the mismatch comparison by having nothing to mismatch -- the same gap as
+    # omitting it, wearing the shape of a filled-in field.
+    if not str(policy.get("repository", "")).strip():
+        issues.append(
+            "policy declares no repository: the identity field is present but "
+            "empty, so nothing can be compared against this checkout"
+        )
     for key in ("repository", "protected_branch", "expected", "documented_exceptions"):
         if key not in policy:
             issues.append(f"policy is missing required key: {key}")
@@ -160,7 +232,8 @@ def fetch_live_protection(repository: str, branch: str) -> dict[str, Any]:
         text=True,
         check=True,
     )
-    return json.loads(result.stdout)
+    payload: dict[str, Any] = json.loads(result.stdout)
+    return payload
 
 
 def resolve_effective_codeowners(repo_root: Path) -> Path | None:
@@ -192,6 +265,7 @@ def compare_live_to_policy(policy: dict[str, Any], live: dict[str, Any]) -> list
         "allow_deletions": _enabled(live.get("allow_deletions")),
         "required_conversation_resolution": _enabled(live.get("required_conversation_resolution")),
         "restrictions_present": live.get("restrictions") is not None,
+        **{key: _enabled(live.get(key)) for key in _MERGEABILITY_EXPECTED_KEYS},
     }
     for name, actual in scalar_fields.items():
         if actual != expected[name]:
@@ -257,6 +331,21 @@ def main() -> int:
 
     policy = load_policy()
     issues = validate_policy_document(policy)
+
+    declared = str(policy.get("repository", "")).strip()
+    actual = detect_repository(POLICY_PATH.resolve().parents[1])
+    if actual is None:
+        issues.append(
+            "cannot determine which repository this checkout is (no "
+            "GITHUB_REPOSITORY and no origin remote); refusing rather than "
+            "trusting the policy document's own repository field"
+        )
+    elif declared and declared.lower() != actual.lower():
+        issues.append(
+            f"policy declares repository {declared!r} but this checkout is "
+            f"{actual!r}: a lifted policy table that keeps the source "
+            "repository would validate the wrong repository and pass"
+        )
     if not args.offline and not issues:
         live = fetch_live_protection(policy["repository"], policy["protected_branch"])
         issues.extend(compare_live_to_policy(policy, live))

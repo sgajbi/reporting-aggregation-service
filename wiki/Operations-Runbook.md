@@ -384,8 +384,15 @@ record. List them, decide their attribution from the surrounding evidence, set i
 
 ```sql
 SELECT idempotency_key, report_evidence_pack_id, caller_context_json
-FROM idea_evidence_intake WHERE tenant_id IS NULL;
+FROM idea_evidence_intake
+WHERE COALESCE(btrim(caller_context_json ->> 'tenant_id'), '') = '';
 ```
+
+Predicated on the stored caller context, **not** on `tenant_id`. When the migration
+refuses, its transaction rolls back — including the `ADD COLUMN tenant_id` that
+preceded the refusal — so a query mentioning that column fails with
+`column "tenant_id" does not exist` and tells the operator nothing about the rows
+that stopped startup.
 
 The transfer refuses the same case for the same reason, naming the key it could not attribute.
 

@@ -402,6 +402,15 @@ class IdeaEvidenceIntakeLedger:
                 "(report#344)."
             )
 
+        # Explicit BEGIN. Python's sqlite3 opens a transaction implicitly before
+        # DML but NOT before DDL, so without this the rename and the create
+        # autocommit one statement at a time. A process dying between them would
+        # restart, find the tenant-scoped table already present, return early --
+        # and serve an EMPTY ledger while every retained receipt sat in
+        # `idea_evidence_intake_pre_344`, accepting old retries as new intakes.
+        # Measured: after `ALTER TABLE ... RENAME`, `connection.in_transaction`
+        # is False and the rename survives a close without a commit.
+        connection.execute("BEGIN IMMEDIATE")
         connection.execute(
             "ALTER TABLE idea_evidence_intake RENAME TO idea_evidence_intake_pre_344"
         )
@@ -432,6 +441,7 @@ class IdeaEvidenceIntakeLedger:
                 f"carried {carried} of {original} intake row(s); refusing to drop the original"
             )
         connection.execute("DROP TABLE idea_evidence_intake_pre_344")
+        connection.commit()
 
     def _ensure_schema(self) -> None:
         with self._connect() as connection:
